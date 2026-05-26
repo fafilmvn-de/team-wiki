@@ -1,0 +1,172 @@
+{
+  "_meta": {
+    "version": 1,
+    "generated": "2026-05-13T08:35:45",
+    "source": "blank-stage starter template",
+    "edit_via": "admin.html (run serve_admin.py to launch)",
+    "edited_via": "admin.html"
+  },
+  "buckets": [
+    {
+      "bucket_id": "PRJ-2026-01",
+      "name": "Example analytical project",
+      "category": "Project",
+      "status": "Active",
+      "tier": "P0",
+      "year": 2026,
+      "source_plan": "",
+      "repo_link": "your-repo/your-project/",
+      "lineage": "",
+      "purpose": "One-line elevator pitch goes here.",
+      "repo_role": "analytical"
+    },
+    {
+      "bucket_id": "CMP-2026-01",
+      "name": "Example marketing campaign",
+      "category": "Campaign",
+      "status": "Active",
+      "tier": "P1",
+      "year": 2026,
+      "source_plan": "",
+      "repo_link": "campaigns/example/",
+      "lineage": "",
+      "purpose": "Whose customers, what product, which channel.",
+      "repo_role": ""
+    },
+    {
+      "bucket_id": "MOD-2026-01",
+      "name": "Example predictive model",
+      "category": "Model",
+      "status": "Active",
+      "tier": "P0",
+      "year": 2026,
+      "source_plan": "",
+      "repo_link": "models/example/",
+      "lineage": "",
+      "purpose": "Target variable, refresh cadence, who consumes the scores.",
+      "repo_role": ""
+    },
+    {
+      "bucket_id": "BAU-2020-01",
+      "name": "Example monthly BAU report",
+      "category": "BAU",
+      "status": "Active",
+      "tier": "P0",
+      "year": 2020,
+      "source_plan": "",
+      "repo_link": "bau/example-report/",
+      "lineage": "",
+      "purpose": "Monthly deliverable to stakeholder X.",
+      "repo_role": ""
+    },
+    {
+      "bucket_id": "STR-2026-01",
+      "name": "Example annual strategy",
+      "category": "Strategy",
+      "status": "Active",
+      "tier": "P0",
+      "year": 2026,
+      "source_plan": "",
+      "repo_link": "",
+      "lineage": "",
+      "purpose": "Annual planning artefact — pillars, OKRs, watch-list.",
+      "repo_role": ""
+    },
+    {
+      "bucket_id": "ADH-2026-01",
+      "name": "Example adhoc folder",
+      "category": "Adhoc",
+      "status": "Active",
+      "tier": "P2",
+      "year": 2026,
+      "source_plan": "",
+      "repo_link": "adhoc/example-folder/",
+      "lineage": "",
+      "purpose": "Folder-level adhoc work parked here (one-off requests, exploratory analyses).",
+      "repo_role": ""
+    },
+    {
+      "bucket_id": "PRJ-2025-02",
+      "name": "Example past project 2",
+      "category": "Project",
+      "status": "Completed",
+      "tier": "P1",
+      "year": 2025,
+      "source_plan": "",
+      "repo_link": "your-repo/old-project/",
+      "repo_role": "analytical",
+      "lineage": "",
+      "purpose": "An older project, kept here for institutional memory."
+    },
+    {
+      "bucket_id": "STR-2024-01",
+      "name": "Example 2024 annual strategy",
+      "category": "Strategy",
+      "status": "Superseded",
+      "tier": "P0",
+      "year": 2024,
+      "source_plan": "",
+      "repo_link": "",
+      "lineage": "Superseded by STR-2026-01",
+      "purpose": "Previous-year strategy — kept inline so the lineage to the current plan stays visible."
+    },
+    {
+      "bucket_id": "CMP-2024-04",
+      "name": "Example seasonal sprint (Q4 2024)",
+      "category": "Campaign",
+      "status": "Retired",
+      "tier": "P2",
+      "year": 2024,
+      "source_plan": "",
+      "repo_link": "campaigns/2024-q4-seasonal/",
+      "lineage": "",
+      "purpose": "Wrapped at end of 2024 with no successor — surfaced in the Archive section."
+    }
+  ],
+  "open_items": [
+    {
+      "severity": "P0",
+      "bucket": "PRJ-2026-01",
+      "item": "Example open question that the next person needs to answer",
+      "first_action": "Sync with stakeholder X in week 1"
+    },
+    {
+      "severity": "P1",
+      "bucket": "MOD-2026-01",
+      "item": "Decide whether to retrain after the next data refresh",
+      "first_action": "Re-run validation notebook end of month"
+    }
+  ],
+  "manuals": [
+    {
+      "manual_id": "MAN-2026-01",
+      "title": "Onboarding guide",
+      "description": "Read me first — what this wiki is, how it's organised, how to read it.",
+      "file": "templates/Post_Mortem.md",
+      "status": "Active"
+    }
+  ],
+  "sp_overrides": {},
+  "deep_packs": [],
+  "mini_wikis": {
+    "PRJ-2026-01": {
+      "file": "00_PRJ-2026-01_Example.html",
+      "label": "Open the example mini-wiki →"
+    }
+  },
+  "settings": {
+    "sp_root": "https://example.sharepoint.com/sites/your-site/your-folder/"
+  },
+  "narratives": {
+    "PRJ-2026-01": {
+      "decisions": [
+        "Use the example methodology decided in the kick-off (date: 2026-01-15).",
+        "Output cadence is monthly, dropped to a shared folder."
+      ],
+      "open_questions": [
+        "Do we add a second segmentation axis next quarter?",
+        "Should this be migrated to Unity Catalog by year-end?"
+      ]
+    }
+  }
+}

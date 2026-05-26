@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PRJ-2026-01 · Example project — mini-wiki</title>
+<style>
+  :root {
+    --bg:#faf7f2; --ink:#1f1a17; --g500:#6b6258; --g300:#cdc5b9;
+    --accent:#b14a2b; --olive:#7a8052; --mauve:#8b7fd8;
+    --paper:#fffdf8; --rule:#e7e0d3;
+  }
+  * { box-sizing:border-box; }
+  body { font:14.5px/1.55 -apple-system,Segoe UI,system-ui,sans-serif;
+         background:var(--bg); color:var(--ink); margin:0; padding:48px 32px; }
+  .wrap { max-width:920px; margin:0 auto; background:var(--paper);
+          border:1px solid var(--rule); padding:36px 44px; border-radius:6px; }
+  h1 { font-size:28px; margin:0 0 6px 0; letter-spacing:-0.01em; }
+  .eyebrow { font-size:11.5px; text-transform:uppercase; letter-spacing:0.12em;
+             color:var(--g500); margin-bottom:24px; }
+  h2 { font-size:18px; margin:32px 0 10px 0; padding-top:18px;
+       border-top:1px solid var(--rule); }
+  h2 .idx { display:inline-block; width:32px; color:var(--accent);
+            font-variant-numeric:tabular-nums; }
+  .sec-intro { color:var(--g500); margin:6px 0 12px 0; }
+  code { font:12.5px/1.5 ui-monospace,Consolas,monospace; background:#f3ede1;
+         padding:1px 5px; border-radius:3px; }
+  ul { padding-left:20px; }
+  li { margin:4px 0; }
+  .callout { background:#f7f2e6; border-left:3px solid var(--olive);
+             padding:10px 14px; margin:12px 0; border-radius:0 4px 4px 0; }
+  .foot { color:var(--g500); font-size:12px; margin-top:40px; padding-top:18px;
+          border-top:1px solid var(--rule); display:flex; justify-content:space-between; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">PRJ-2026-01 · Example project · mini-wiki template</div>
+  <h1>Example project — deep dive</h1>
+  <p style="color:var(--g500);margin:0 0 8px 0">
+    Replace this whole file with a real deep-pack write-up. Sections below are a
+    suggested skeleton — feel free to add or drop sections as needed.
+  </p>
+
+  <h2><span class="idx">01</span>What &amp; why</h2>
+  <p class="sec-intro">Two paragraphs max. Why the project exists, what business
+    problem it solves, who asked for it.</p>
+  <ul>
+    <li><b>Business problem:</b> &lt;one sentence&gt;</li>
+    <li><b>Stakeholder:</b> &lt;team / person&gt;</li>
+    <li><b>Asked for by:</b> &lt;date / meeting&gt;</li>
+  </ul>
+
+  <h2><span class="idx">02</span>Timeline</h2>
+  <ul>
+    <li><b>2026-01:</b> Kick-off + scoping</li>
+    <li><b>2026-02:</b> Baseline analysis</li>
+    <li><b>2026-03:</b> First delivery</li>
+  </ul>
+
+  <h2><span class="idx">03</span>Approach / flow</h2>
+  <ul>
+    <li><b>Inputs:</b> source tables, refresh cadence</li>
+    <li><b>Logic:</b> the actual transformation / model / rule</li>
+    <li><b>Outputs:</b> table names, file names, where they land</li>
+  </ul>
+
+  <h2><span class="idx">04</span>Code &amp; artefacts</h2>
+  <ul>
+    <li><code>your-repo/your-project/</code> — main code folder</li>
+    <li><code>your-repo/your-project/docs/README.md</code> — engineering README</li>
+  </ul>
+
+  <h2><span class="idx">05</span>Outputs &amp; deliverables</h2>
+  <ul>
+    <li>What lands where, who consumes it.</li>
+  </ul>
+
+  <h2><span class="idx">06</span>Gotchas &amp; open items</h2>
+  <div class="callout">
+    Note anything unusual the next person needs to know — oversize files,
+    naming quirks, awkward joins, known defects.
+  </div>
+  <ul>
+    <li>Open question 1</li>
+    <li>Open question 2</li>
+  </ul>
+
+  <div class="foot">
+    <div>PRJ-2026-01 · Example mini-wiki v0.1 · YYYY-MM-DD</div>
+    <div><a href="index.html">← handover wiki</a></div>
+  </div>
+
+</div>
+</body>
+</html>

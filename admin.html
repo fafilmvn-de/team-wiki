@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VN · AI Wiki — admin</title>
+<link rel="stylesheet" href="assets/admin.css">
+<script src="assets/auth.js"></script>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">VN · Inventory Admin</div>
+  <h1>Team <em>Wiki</em> · admin</h1>
+  <div class="spacer"></div>
+  <div class="status" id="status"><span class="dot"></span><span id="status-text">loading…</span></div>
+  <button class="btn" id="btn-add">+ Add row</button>
+  <button class="btn" id="btn-import" title="Import buckets/manuals from inventory.xlsx">⬆ Import</button>
+  <input type="file" id="file-import" accept=".xlsx" hidden>
+  <button class="btn" id="btn-reload" title="Reload inventory.json from disk">↺ Reload</button>
+  <button class="btn primary" id="btn-save" disabled>Save</button>
+  <a class="btn" href="semantic_editor.html" title="Open the Semantic Editor (data model authoring)">🧱 Semantic editor</a>
+  <a class="btn" href="index.html" target="_blank" title="Open the rendered wiki">Wiki ↗</a>
+  <button class="btn" id="btn-change-passcode" title="Change the 6-digit passcode used to access admin/editor pages">🔑 Passcode</button>
+</header>
+
+<div class="wrap">
+
+  <nav class="tabs" id="tabs">
+    <a data-tab="Project"  class="active">Projects   <span class="n" data-count="Project">0</span></a>
+    <a data-tab="Campaign">Campaigns  <span class="n" data-count="Campaign">0</span></a>
+    <a data-tab="Model">   Models     <span class="n" data-count="Model">0</span></a>
+    <a data-tab="BAU">     BAU        <span class="n" data-count="BAU">0</span></a>
+    <a data-tab="Strategy">Strategy   <span class="n" data-count="Strategy">0</span></a>
+    <a data-tab="Adhoc">   Adhoc      <span class="n" data-count="Adhoc">0</span></a>
+    <a data-tab="Manual">  Manuals    <span class="n" data-count="Manual">0</span></a>
+    <a data-tab="Settings">Settings</a>
+  </nav>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search ID, name, keyword in this tab…">
+    <label class="chk"><input type="checkbox" id="show-retired"> show retired <span id="retired-count" style="color:var(--g500);font-family:var(--mono);font-size:11px"></span></label>
+    <span style="flex:1"></span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--g500)" id="row-count">0 rows</span>
+  </div>
+
+  <div class="tbl-wrap" id="tbl-host"></div>
+
+  <footer class="foot">
+    <span>Source · <code>./inventory.json</code> · rebuild with <code>python ./scripts/rebuild_wiki.py</code></span>
+    <span>Soft-delete keeps history; .bak rotated on every save</span>
+  </footer>
+</div>
+
+<!-- ── add-row modal ─────────────────── -->
+<div class="modal" id="modal">
+  <div class="panel">
+    <h3 id="m-title">Add new row</h3>
+    <p class="hint" id="m-hint">Required fields are marked with <span style="color:var(--clay)">*</span>. Bucket ID prefix must match the category.</p>
+    <form id="form" autocomplete="off"></form>
+    <div class="err" id="m-err"></div>
+    <div class="actions">
+      <button class="btn" id="m-cancel">Cancel</button>
+      <button class="btn primary" id="m-submit">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── import-diff modal ───────── -->
+<div class="modal" id="imp-modal">
+  <div class="panel" style="max-width:1100px;width:96vw">
+    <h3 id="imp-title">Import preview</h3>
+    <p class="hint" id="imp-hint">Review every change row by row. Nothing is saved until you click <b>Apply</b> and then <b>Save</b>.</p>
+    <div id="imp-summary" style="font-family:var(--mono);font-size:12px;color:var(--g700);margin:8px 0 14px;display:flex;gap:18px;flex-wrap:wrap"></div>
+    <div id="imp-bulk" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn" data-bulk="take"  type="button">Take all incoming</button>
+      <button class="btn" data-bulk="keep"  type="button">Keep all mine</button>
+      <button class="btn" data-bulk="skip"  type="button">Skip all conflicts</button>
+      <span style="flex:1"></span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--g500);align-self:center" id="imp-counter"></span>
+    </div>
+    <div id="imp-body" style="max-height:55vh;overflow:auto;border:1px solid var(--g300);border-radius:8px;padding:6px"></div>
+    <div class="err" id="imp-err"></div>
+    <div class="actions">
+      <button class="btn" id="imp-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="imp-apply" type="button">Apply</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── narrative editor modal ─────────────────── -->
+<div class="modal" id="nar-modal">
+  <div class="panel" style="max-width:720px;width:92vw">
+    <h3 id="nar-title">Edit narrative</h3>
+    <p class="hint">One bullet per line. Leave blank to clear. Saved into <code>inventory.json &rarr; narratives</code>; rebuild not required &mdash; the wiki re-fetches on reload.</p>
+    <label style="display:block;font-family:var(--mono);font-size:11px;color:var(--g700);margin-top:10px">Decisions baked in</label>
+    <textarea id="nar-decisions" rows="6" style="width:100%;font-family:var(--mono);font-size:12px;padding:8px;border:1px solid var(--g300);border-radius:6px;resize:vertical"></textarea>
+    <label style="display:block;font-family:var(--mono);font-size:11px;color:var(--g700);margin-top:10px">Open questions</label>
+    <textarea id="nar-questions" rows="6" style="width:100%;font-family:var(--mono);font-size:12px;padding:8px;border:1px solid var(--g300);border-radius:6px;resize:vertical"></textarea>
+    <div class="err" id="nar-err"></div>
+    <div class="actions">
+      <button class="btn" id="nar-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="nar-save" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/admin.js" defer></script>
+<script defer>
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btn-change-passcode');
+    if (btn && window.HandoverAuth) {
+      btn.addEventListener('click', function () { window.HandoverAuth.openChangePasscodeModal(); });
+    }
+  });
+</script>
+</body>
+</html>

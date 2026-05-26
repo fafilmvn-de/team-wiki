@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VN · AI Wiki — Semantic Editor</title>
+<link rel="stylesheet" href="assets/semantic_editor.css">
+<script src="assets/auth.js"></script>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">VN · Semantic Editor</div>
+  <h1>Team <em>Wiki</em> · semantic model</h1>
+  <div class="status" id="status"><span class="dot"></span><span id="status-text">loading…</span></div>
+  <div class="view-toggle" role="tablist" aria-label="Canvas view mode">
+    <button class="vt-btn active" id="vt-domain" role="tab" aria-selected="true" title="Hand-positioned domain bubbles + auto-ringed tables">🌐 Domain map</button>
+    <button class="vt-btn"        id="vt-table"  role="tab" aria-selected="false" title="Power BI Model–style table cards with column-level FK edges">🧱 Table model</button>
+  </div>
+  <button class="btn" id="btn-add-domain"  title="Add a new domain">+ Domain</button>
+  <button class="btn" id="btn-add-table"   title="Add a new table to the selected domain">+ Table</button>
+  <button class="btn" id="btn-add-rel"     title="Add a relationship between two entities">+ Relationship</button>
+  <button class="btn" id="btn-import" title="Re-import semantic.xlsx (overwrites semantic.json after backing up the previous version)">⬆ Import xlsx</button>
+  <input type="file" id="file-import" accept=".xlsx" hidden>
+  <button class="btn" id="btn-export" title="Export semantic.json → semantic.xlsx (backs up the previous xlsx)">⬇ Export xlsx</button>
+  <button class="btn" id="btn-reload" title="Reload semantic.json from disk (discard unsaved edits)">↺ Reload</button>
+  <button class="btn primary" id="btn-save" disabled title="Save (Ctrl+S) — PUT semantic.json + rebuild 08_Semantic_Model.html">Save</button>
+  <a class="btn" id="link-admin" href="admin.html" title="Open the Inventory Admin (buckets / projects)">📋 Inventory admin</a>
+  <a class="btn" id="link-wiki" href="semantic/08_Semantic_Model.html" target="_blank" title="Open the rendered read-only wiki">Wiki ↗</a>
+  <!-- Search lives on its own row (forced wrap via flex-basis:100%) so the
+       results dropdown has enough width for long table FQNs. -->
+  <div class="search-wrap">
+    <input id="search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search domains, tables, columns…"
+           aria-label="Search domains, tables, and columns"
+           aria-controls="search-results" aria-expanded="false">
+    <span class="search-kbd">/</span>
+    <div id="search-results" role="listbox" aria-label="Search results"></div>
+  </div>
+</header>
+
+<div class="wrap" id="wrap">
+
+  <!-- Left: canvas -->
+  <main class="canvas-host">
+    <div class="canvas-toolbar">
+      <span class="legend" id="legend"></span>
+      <span style="flex:1"></span>
+      <button class="mini" id="btn-fit"       title="Fit graph to viewport">⤧ Fit</button>
+      <button class="mini" id="btn-recenter"  title="Reset zoom">⊙ Reset</button>
+      <button class="mini" id="btn-toggle-suggest" title="Show/hide the suggestions panel">💡 Suggestions <span class="badge" id="suggest-count">0</span></button>
+    </div>
+    <div id="cy" class="cy"></div>
+    <!-- Solo-mode controls (hidden until a domain is soloed) -->
+    <div id="solo-controls" class="solo-controls" aria-hidden="true">
+      <button class="solo-chip solo-chip-back" id="solo-back" type="button"
+              title="Exit Solo mode (Esc)">
+        <span aria-hidden="true">←</span> All domains
+      </button>
+      <span class="solo-chip-name">Solo: <span class="solo-label">—</span></span>
+      <button class="solo-chip solo-chip-tidy" id="solo-tidy" type="button"
+              title="Auto-arrange satellites into a clean ring/spiral">
+        <span aria-hidden="true">⌬</span> Tidy
+      </button>
+    </div>
+    <div class="canvas-hint" id="canvas-hint">Tip: drag a domain bubble to reposition it · click an entity to open its inspector · in Table model view, drag from one column to another to create an FK relationship.</div>
+  </main>
+
+  <!-- Right: inspector + suggestions -->
+  <aside class="side" id="side">
+    <div class="side-tabs">
+      <button class="st-btn active" data-side="inspector" id="st-inspector">Inspector</button>
+      <button class="st-btn"        data-side="suggest"   id="st-suggest">Suggestions <span class="badge" id="suggest-count2">0</span></button>
+      <button class="st-btn"        data-side="data"      id="st-data">Data tables</button>
+    </div>
+
+    <section class="side-pane active" id="pane-inspector">
+      <div class="empty" id="ins-empty">Click any node, edge, table column, or use the toolbar buttons to add new entities.</div>
+      <form id="ins-form" class="ins-form hidden" autocomplete="off"></form>
+    </section>
+
+    <section class="side-pane" id="pane-suggest">
+      <p class="hint">Auto-detected FK candidates from column-name matches across tables. Existing relationships and dismissed suggestions are filtered out.</p>
+      <div id="suggest-list"></div>
+    </section>
+
+    <section class="side-pane" id="pane-data">
+      <div class="data-tabs">
+        <button class="dt-btn active" data-tab="domains">Domains <span class="n" id="n-domains">0</span></button>
+        <button class="dt-btn"        data-tab="tables">Tables <span class="n" id="n-tables">0</span></button>
+        <button class="dt-btn"        data-tab="columns">Columns <span class="n" id="n-columns">0</span></button>
+        <button class="dt-btn"        data-tab="relationships">Relationships <span class="n" id="n-rels">0</span></button>
+        <button class="dt-btn"        data-tab="bucket_table_xref">Xref <span class="n" id="n-xref">0</span></button>
+        <button class="dt-btn"        data-tab="meta">Meta <span class="n" id="n-meta">0</span></button>
+      </div>
+      <div id="data-host" class="data-host"></div>
+    </section>
+  </aside>
+</div>
+
+<!-- ── bootstrap modal (no semantic.json yet) ───────────────────────── -->
+<div class="modal" id="boot-modal">
+  <div class="panel">
+    <h3>No semantic.json found</h3>
+    <p class="hint"><code>semantic/semantic.json</code> doesn't exist yet — it's the live source-of-truth for the editor.</p>
+    <p class="hint">Bootstrap it from <code>semantic/semantic.xlsx</code> (existing seed data will be imported), or seed a fresh empty one from the command line:
+      <code>python handovers/scripts/build_semantic.py --seed</code></p>
+    <div class="err" id="boot-err"></div>
+    <div class="actions">
+      <button class="btn" id="boot-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="boot-import" type="button">Import semantic.xlsx →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── new-relationship modal ─────────────────────────────────────── -->
+<div class="modal" id="rel-modal">
+  <div class="panel">
+    <h3 id="rel-modal-title">New relationship</h3>
+    <p class="hint">Connect two entities (domain ↔ domain for <code>domain_link</code>, table ↔ table for <code>fk</code> or <code>derived_from</code>).</p>
+    <form id="rel-form" autocomplete="off"></form>
+    <div class="err" id="rel-err"></div>
+    <div class="actions">
+      <button class="btn" id="rel-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="rel-submit" type="button">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/vendor/cytoscape.min.js" defer></script>
+<script src="assets/semantic_editor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+{
+  "_meta": {
+    "schema_version": 2,
+    "generated": "2026-05-26T00:00:00",
+    "source": "Acme Retail Analytics — public template seed",
+    "edited_via": "semantic_editor.html"
+  },
+  "domains": [
+    {
+      "domain_id": "CUSTOMER",
+      "domain_name": "Customer",
+      "description": "Customer master data and derived 360° / scoring tables.",
+      "x": 25,
+      "y": 35,
+      "radius": 110,
+      "color": "#4F46E5",
+      "icon": "👤"
+    },
+    {
+      "domain_id": "PRODUCT",
+      "domain_name": "Product",
+      "description": "Product catalogue, categories, pricing.",
+      "x": 75,
+      "y": 35,
+      "radius": 90,
+      "color": "#059669",
+      "icon": "📦"
+    },
+    {
+      "domain_id": "ORDER",
+      "domain_name": "Order",
+      "description": "Transactional orders and line items.",
+      "x": 50,
+      "y": 65,
+      "radius": 100,
+      "color": "#DC2626",
+      "icon": "🛒"
+    },
+    {
+      "domain_id": "MARKETING",
+      "domain_name": "Marketing",
+      "description": "Outbound campaigns and engagement events.",
+      "x": 25,
+      "y": 82,
+      "radius": 85,
+      "color": "#D97706",
+      "icon": "📣"
+    }
+  ],
+  "tables": [
+    { "table_fqn": "raw_catalog.ops.customers", "domain_id": "CUSTOMER", "short_name": "customers", "description": "Customer master — one row per customer_id.", "grain": "1 row per customer_id", "partition_col": null, "source_system": "OPS", "share": true, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "domain_id": "CUSTOMER", "short_name": "customer_360", "description": "Wide customer feature table — lifetime value, order count, segment.", "grain": "1 row per customer_id", "partition_col": null, "source_system": "Analytics", "share": true, "notes": "Refreshed daily by PRJ-2026-01." },
+    { "table_fqn": "curated_catalog.analytics.customer_churn_score", "domain_id": "CUSTOMER", "short_name": "customer_churn_score", "description": "Per-customer churn propensity score from the active model.", "grain": "1 row per customer_id per scoring date", "partition_col": "score_date", "source_system": "Analytics", "share": true, "notes": "Refreshed weekly by MOD-2026-01." },
+    { "table_fqn": "raw_catalog.ops.products", "domain_id": "PRODUCT", "short_name": "products", "description": "Product master.", "grain": "1 row per product_id", "partition_col": null, "source_system": "OPS", "share": true, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "domain_id": "ORDER", "short_name": "orders", "description": "Order header — one row per order_id.", "grain": "1 row per order_id", "partition_col": "order_date", "source_system": "OPS", "share": true, "notes": null },
+    { "table_fqn": "raw_catalog.ops.order_items", "domain_id": "ORDER", "short_name": "order_items", "description": "Order line items.", "grain": "1 row per (order_id, product_id)", "partition_col": "order_date", "source_system": "OPS", "share": true, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "domain_id": "MARKETING", "short_name": "campaign_sends", "description": "Per-send outbound campaign log (email + push).", "grain": "1 row per send_id", "partition_col": "send_date", "source_system": "Marketing Cloud", "share": true, "notes": null }
+  ],
+  "columns": [
+    { "table_fqn": "raw_catalog.ops.customers", "column": "customer_id", "type": "STRING", "description": "Primary key.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.customers", "column": "email", "type": "STRING", "description": "Contact email.", "domain_values": null, "nullable": true, "pii": true, "notes": null },
+    { "table_fqn": "raw_catalog.ops.customers", "column": "signup_date", "type": "DATE", "description": "First-touch acquisition date.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.customers", "column": "country", "type": "STRING", "description": "ISO country code.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.customers", "column": "age_band", "type": "STRING", "description": "Banded age — 18-24, 25-34, …", "domain_values": "18-24, 25-34, 35-44, 45-54, 55-64, 65+", "nullable": true, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "column": "customer_id", "type": "STRING", "description": "Foreign key to customers.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "column": "lifetime_value", "type": "DECIMAL(12,2)", "description": "Sum of order totals, all-time.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "column": "order_count", "type": "INT", "description": "Total orders placed.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "column": "last_order_date", "type": "DATE", "description": "Most-recent order date.", "domain_values": null, "nullable": true, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_360", "column": "segment", "type": "STRING", "description": "Behavioural segment.", "domain_values": "VIP, Loyal, Casual, At-Risk, Lapsed", "nullable": true, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_churn_score", "column": "customer_id", "type": "STRING", "description": "Foreign key to customers.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_churn_score", "column": "score_date", "type": "DATE", "description": "Date the score was generated.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_churn_score", "column": "churn_score", "type": "DOUBLE", "description": "Probability of churn in next 30 days (0–1).", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "curated_catalog.analytics.customer_churn_score", "column": "model_version", "type": "STRING", "description": "Model artefact version that produced this score.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.products", "column": "product_id", "type": "STRING", "description": "Primary key.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.products", "column": "product_name", "type": "STRING", "description": "Display name.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.products", "column": "category", "type": "STRING", "description": "Top-level category.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.products", "column": "price", "type": "DECIMAL(10,2)", "description": "List price.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.products", "column": "launch_date", "type": "DATE", "description": "First-available date.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "column": "order_id", "type": "STRING", "description": "Primary key.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "column": "customer_id", "type": "STRING", "description": "Foreign key to customers.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "column": "order_date", "type": "DATE", "description": "Order placement date.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "column": "channel", "type": "STRING", "description": "Acquisition channel.", "domain_values": "Web, Mobile, Store, Partner", "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.orders", "column": "total_amount", "type": "DECIMAL(10,2)", "description": "Order grand total.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.order_items", "column": "order_id", "type": "STRING", "description": "Foreign key to orders.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.order_items", "column": "product_id", "type": "STRING", "description": "Foreign key to products.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.order_items", "column": "quantity", "type": "INT", "description": "Units ordered.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.ops.order_items", "column": "unit_price", "type": "DECIMAL(10,2)", "description": "Price at order time.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "column": "send_id", "type": "STRING", "description": "Primary key.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "column": "customer_id", "type": "STRING", "description": "Foreign key to customers.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "column": "campaign_code", "type": "STRING", "description": "Campaign identifier.", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "column": "send_date", "type": "DATE", "description": "Send timestamp (date-truncated).", "domain_values": null, "nullable": false, "pii": false, "notes": null },
+    { "table_fqn": "raw_catalog.marketing.campaign_sends", "column": "opened", "type": "BOOLEAN", "description": "Did the recipient open?", "domain_values": null, "nullable": true, "pii": false, "notes": null }
+  ],
+  "relationships": [
+    { "from": "ORDER", "to": "CUSTOMER", "kind": "domain_link", "cardinality": "n:1", "via": "orders.customer_id = customers.customer_id", "notes": null, "from_column": "customer_id", "to_column": "customer_id" },
+    { "from": "ORDER", "to": "PRODUCT", "kind": "domain_link", "cardinality": "n:n", "via": "order_items joins orders to products", "notes": null, "from_column": "product_id", "to_column": "product_id" },
+    { "from": "MARKETING", "to": "CUSTOMER", "kind": "domain_link", "cardinality": "n:1", "via": "campaign_sends.customer_id = customers.customer_id", "notes": null, "from_column": "customer_id", "to_column": "customer_id" },
+    { "from": "raw_catalog.ops.orders", "to": "raw_catalog.ops.customers", "kind": "fk", "cardinality": "n:1", "via": "orders.customer_id → customers.customer_id", "notes": null, "from_column": "customer_id", "to_column": "customer_id" },
+    { "from": "raw_catalog.ops.order_items", "to": "raw_catalog.ops.orders", "kind": "fk", "cardinality": "n:1", "via": "order_items.order_id → orders.order_id", "notes": null, "from_column": "order_id", "to_column": "order_id" },
+    { "from": "raw_catalog.ops.order_items", "to": "raw_catalog.ops.products", "kind": "fk", "cardinality": "n:1", "via": "order_items.product_id → products.product_id", "notes": null, "from_column": "product_id", "to_column": "product_id" },
+    { "from": "raw_catalog.marketing.campaign_sends", "to": "raw_catalog.ops.customers", "kind": "fk", "cardinality": "n:1", "via": "campaign_sends.customer_id → customers.customer_id", "notes": null, "from_column": "customer_id", "to_column": "customer_id" },
+    { "from": "curated_catalog.analytics.customer_360", "to": "raw_catalog.ops.customers", "kind": "derived_from", "cardinality": "1:1", "via": "customer_360 is aggregated per customer", "notes": null, "from_column": "customer_id", "to_column": "customer_id" },
+    { "from": "curated_catalog.analytics.customer_churn_score", "to": "curated_catalog.analytics.customer_360", "kind": "derived_from", "cardinality": "1:1", "via": "scoring model consumes customer_360 features", "notes": null, "from_column": "customer_id", "to_column": "customer_id" }
+  ],
+  "bucket_table_xref": [
+    { "bucket_id": "PRJ-2026-01", "table_fqn": "raw_catalog.ops.customers", "access": "R", "notes": "Source dimension." },
+    { "bucket_id": "PRJ-2026-01", "table_fqn": "raw_catalog.ops.orders", "access": "R", "notes": "Order history for LTV." },
+    { "bucket_id": "PRJ-2026-01", "table_fqn": "raw_catalog.ops.order_items", "access": "R", "notes": "Line-level detail." },
+    { "bucket_id": "PRJ-2026-01", "table_fqn": "curated_catalog.analytics.customer_360", "access": "W", "notes": "Daily refresh." },
+    { "bucket_id": "MOD-2026-01", "table_fqn": "raw_catalog.ops.customers", "access": "R", "notes": "Static features." },
+    { "bucket_id": "MOD-2026-01", "table_fqn": "curated_catalog.analytics.customer_360", "access": "R", "notes": "Wide feature inputs." },
+    { "bucket_id": "MOD-2026-01", "table_fqn": "curated_catalog.analytics.customer_churn_score", "access": "W", "notes": "Weekly model outputs." },
+    { "bucket_id": "CMP-2026-01", "table_fqn": "curated_catalog.analytics.customer_churn_score", "access": "R", "notes": "Targeting." },
+    { "bucket_id": "CMP-2026-01", "table_fqn": "raw_catalog.marketing.campaign_sends", "access": "R", "notes": "Send-log for measurement." }
+  ],
+  "meta": [
+    { "key": "suggestion_suppressions", "value": "[]" },
+    { "key": "solo_offsets", "value": "{}" }
+  ]
+}

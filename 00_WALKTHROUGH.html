@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Walkthrough · The AI Wikipedia (starter template)</title>
+<style>
+:root {
+  --ivory:#FAF9F5; --paper:#FFFFFF; --slate:#141413; --clay:#D97757;
+  --oat:#E3DACC; --olive:#788C5D; --mauve:#7A6E8A; --warning:#C78E3F;
+  --g100:#F2EFE7; --g200:#E6E1D3; --g300:#D6CFBC; --g500:#8A8775; --g700:#4D4A3F;
+  --serif: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  --mono:  ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+  --shadow-1: 0 1px 2px rgba(20,20,19,.04), 0 2px 6px rgba(20,20,19,.05);
+  --shadow-2: 0 8px 22px rgba(20,20,19,.08);
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--clay);text-decoration:none;border-bottom:1px solid var(--oat);transition:border-color 120ms ease}
+a:hover{border-color:var(--clay)}
+code,.mono{font-family:var(--mono);font-size:.9em}
+code{background:var(--g100);padding:1px 6px;border-radius:4px;border:1px solid var(--g200)}
+pre{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--g100);border:1.5px solid var(--g200);border-radius:8px;padding:14px 16px;overflow-x:auto;color:var(--slate);margin:14px 0;white-space:pre}
+pre code{background:transparent;padding:0;border:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 32px 100px}
+@media (min-width:1100px){body{padding-left:280px}}
+
+/* ── sidebar ──────────────────────────────────────────────── */
+aside.sidebar{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--paper);border-right:1.5px solid var(--g300);overflow-y:auto;padding:22px 18px 80px;z-index:20;font-size:13px}
+@media (max-width:1099px){aside.sidebar{position:relative;width:100%;height:auto;max-height:none;border-right:none;border-bottom:1.5px solid var(--g300)}}
+aside.sidebar .brand{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);padding:4px 8px 14px;display:flex;align-items:center;gap:10px}
+aside.sidebar .brand::before{content:"";width:18px;height:1.5px;background:var(--clay)}
+aside.sidebar .back{font-family:var(--mono);font-size:11px;color:var(--g700);border:1.5px solid var(--g300);border-radius:999px;padding:6px 12px;margin:0 8px 18px;display:inline-block;text-decoration:none}
+aside.sidebar .back:hover{border-color:var(--slate);color:var(--slate)}
+aside.sidebar nav a{display:flex;gap:8px;padding:7px 8px;border-radius:6px;color:var(--slate);text-decoration:none;border-bottom:none;font-family:var(--sans);font-size:13.5px}
+aside.sidebar nav a .nb{font-family:var(--mono);font-size:10.5px;color:var(--clay);width:24px;flex-shrink:0}
+aside.sidebar nav a:hover{background:var(--g100)}
+aside.sidebar nav a.active{background:var(--g100);color:var(--clay)}
+aside.sidebar .sb-foot{margin-top:28px;padding:14px 8px 0;border-top:1px solid var(--g200);font-family:var(--mono);font-size:10.5px;color:var(--g500)}
+
+/* ── masthead ─────────────────────────────────────────────── */
+header.masthead{padding:64px 0 40px;border-bottom:1.5px solid var(--g300)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:24px;height:1.5px;background:var(--clay)}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,4.6vw,52px);line-height:1.06;letter-spacing:-.018em;margin:0 0 6px;max-width:24ch}
+h1 em{font-style:italic;color:var(--clay)}
+.subtitle{font-size:16.5px;color:var(--g700);max-width:720px;margin:18px 0 0}
+.kvgrid{margin-top:28px;display:grid;gap:8px 18px;grid-template-columns:max-content 1fr;font-size:13.5px}
+.kvgrid dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--g500);padding-top:2px}
+.kvgrid dd{margin:0;color:var(--slate)}
+.kvgrid dd .pill{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:1px 7px;border-radius:999px;background:var(--g100);border:1px solid var(--g200);margin-right:4px}
+.kvgrid dd .pill.live{background:var(--olive);color:var(--ivory);border-color:var(--olive)}
+
+/* ── sections ─────────────────────────────────────────────── */
+section{margin-top:64px;scroll-margin-top:24px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-head .idx{font-family:var(--mono);font-size:13px;color:var(--clay);font-weight:600;width:36px;flex-shrink:0}
+.sec-head h2{font-family:var(--serif);font-weight:500;font-size:26px;margin:0;letter-spacing:-.012em}
+.sec-intro{font-size:14.5px;color:var(--g700);max-width:760px;margin:0 0 22px 50px}
+@media (max-width:640px){.sec-intro{margin-left:0}}
+section .body{margin-left:50px}
+@media (max-width:640px){section .body{margin-left:0}}
+section h3{font-family:var(--serif);font-weight:500;font-size:19px;margin:32px 0 10px;letter-spacing:-.008em}
+section h4{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--g500);margin:22px 0 8px}
+section p{margin:0 0 12px;max-width:780px}
+section ul,section ol{padding-left:20px;margin:6px 0 14px;max-width:780px}
+section li{margin:4px 0}
+
+/* ── callouts ─────────────────────────────────────────────── */
+.callout{border-left:3px solid var(--clay);background:#FBF5EE;padding:12px 18px;margin:16px 0;border-radius:0 8px 8px 0;font-size:14px;max-width:780px}
+.callout.olive{border-left-color:var(--olive);background:#F1F4EB}
+.callout.mauve{border-left-color:var(--mauve);background:#F3F0F5}
+.callout strong{color:var(--clay)}
+.callout.olive strong{color:var(--olive)}
+.callout.mauve strong{color:var(--mauve)}
+
+/* ── diagram blocks ───────────────────────────────────────── */
+.diagram{background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;padding:20px 24px;margin:18px 0;box-shadow:var(--shadow-1)}
+.diagram svg{display:block;width:100%;height:auto;max-width:940px;margin:0 auto;overflow:visible}
+.diagram svg .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;fill:var(--g500)}
+.diagram svg .ttl{font-family:var(--serif);font-size:13px;fill:var(--slate)}
+.diagram svg .meta{font-family:var(--mono);font-size:10px;fill:var(--g700)}
+.diagram .legend{font-family:var(--mono);font-size:10.5px;color:var(--g500);text-align:center;margin-top:10px;letter-spacing:.04em}
+.diagram .legend span{display:inline-block;margin:0 8px}
+.diagram .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1.5px solid}
+
+/* numbered anatomy legend below the SVG mockup */
+.anatomy-legend{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:1fr;gap:8px;max-width:880px}
+.anatomy-legend li{font-size:13.5px;color:var(--slate);line-height:1.5;padding-left:36px;position:relative}
+.anatomy-legend li .m{position:absolute;left:0;top:1px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--clay);color:#fff;font-family:var(--mono);font-size:11px;font-weight:700}
+.anatomy-legend li b{color:var(--slate)}
+.anatomy-legend li code{background:var(--g100);padding:1px 6px;border-radius:4px;border:1px solid var(--g200);font-size:.88em}
+
+/* "Stays the same vs You change" two-column compare ─── */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0 6px}
+@media (max-width:720px){ .compare{grid-template-columns:1fr} }
+.compare .col{background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-1)}
+.compare .col.fixed{border-top:3px solid var(--olive)}
+.compare .col.edit {border-top:3px solid var(--clay)}
+.compare .col h4{margin:0;padding:14px 18px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:10px;color:var(--g700)}
+.compare .col.fixed h4{color:var(--olive)}
+.compare .col.edit  h4{color:var(--clay)}
+.compare .col h4 svg{width:18px;height:18px;flex-shrink:0}
+.compare .col ul{list-style:none;margin:0;padding:0 0 8px}
+.compare .col li{padding:10px 18px;border-top:1px solid var(--g200);font-size:14px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
+.compare .col li::before{content:"";width:6px;height:6px;border-radius:50%;margin-top:7px;flex-shrink:0}
+.compare .col.fixed li::before{background:var(--olive)}
+.compare .col.edit  li::before{background:var(--clay)}
+.compare .col li b{font-weight:600}
+.compare .col li code{background:var(--g100);padding:1px 6px;border-radius:4px;border:1px solid var(--g200);font-size:.88em}
+
+/* ── animations ───────────────────────────────────────────── */
+@keyframes drawIn { from { stroke-dashoffset: var(--len, 1000); } to { stroke-dashoffset: 0; } }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: .92; } }
+@keyframes flow {
+  0%   { stroke-dashoffset: 16; }
+  100% { stroke-dashoffset: 0;  }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ping {
+  0%   { r: 4; opacity: .9; }
+  100% { r: 18; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .diagram svg * { animation: none !important; transition: none !important; }
+}
+
+/* animated stroke draw-on */
+.diagram svg .draw {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: drawIn 1.6s ease-out forwards;
+}
+.diagram svg .draw.d1 { animation-delay: .1s; }
+.diagram svg .draw.d2 { animation-delay: .55s; }
+.diagram svg .draw.d3 { animation-delay: 1.0s; }
+.diagram svg .draw.d4 { animation-delay: 1.45s; }
+
+/* dashed flow lines that march */
+.diagram svg .flowline {
+  stroke-dasharray: 8 8;
+  animation: flow 1.4s linear infinite;
+}
+
+/* pulsing node */
+.diagram svg .hub {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+/* ping dot */
+.diagram svg .ping {
+  fill: var(--clay);
+  animation: ping 1.6s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* fade-up cards */
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:14px 0 6px}
+.step-card{background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;padding:16px 18px;animation:fadeUp .6s ease-out both;box-shadow:var(--shadow-1)}
+.step-card:nth-child(1){animation-delay:.05s}
+.step-card:nth-child(2){animation-delay:.15s}
+.step-card:nth-child(3){animation-delay:.25s}
+.step-card:nth-child(4){animation-delay:.35s}
+.step-card:nth-child(5){animation-delay:.45s}
+.step-card:nth-child(6){animation-delay:.55s}
+.step-card .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--clay);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.step-card .num::before{content:"";display:inline-block;width:18px;height:1.5px;background:var(--clay)}
+.step-card .ttl{font-family:var(--serif);font-size:17px;margin-bottom:6px;letter-spacing:-.008em}
+.step-card .ds{font-size:13.5px;color:var(--g700);line-height:1.5}
+
+/* hero card on top */
+.hero-card{background:linear-gradient(135deg,var(--paper) 0%,#FBF5EE 100%);border:1.5px solid var(--g300);border-left:3px solid var(--clay);border-radius:12px;padding:20px 24px;margin:20px 0 8px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow-1)}
+.hero-card .icon{flex-shrink:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;color:var(--clay)}
+.hero-card .icon svg{width:24px;height:24px}
+.hero-card .txt{flex:1;min-width:260px}
+.hero-card h3{margin:0 0 4px;font-family:var(--serif);font-size:18px;letter-spacing:-.008em}
+.hero-card p{margin:0;font-size:14px;color:var(--g700);max-width:none}
+
+/* ref-roots: original 5 cards as a tidy grid */
+.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:10px}
+.refs a{display:block;background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;padding:14px 16px;color:var(--slate);text-decoration:none;border-bottom:1.5px solid var(--g300);transition:border-color 150ms,transform 150ms,box-shadow 150ms}
+.refs a:hover{border-color:var(--slate);transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.refs a .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--clay);margin-bottom:4px}
+.refs a .ttl{font-family:var(--serif);font-size:15px;margin-bottom:3px}
+.refs a .ds{font-size:12px;color:var(--g700)}
+
+/* tip strip */
+.tips{background:var(--paper);border:1.5px solid var(--g300);border-radius:12px;overflow:hidden;margin:14px 0}
+.tips dt{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--clay);padding:10px 16px 4px}
+.tips dd{margin:0;padding:0 16px 12px;font-size:14px;color:var(--slate);border-bottom:1px solid var(--g200)}
+.tips dd:last-child{border-bottom:none}
+.tips kbd{font-family:var(--mono);font-size:11.5px;background:var(--g100);border:1px solid var(--g300);border-bottom-width:2px;border-radius:4px;padding:1px 6px;color:var(--slate)}
+
+footer.foot{margin-top:96px;padding:28px 0 0;border-top:1.5px solid var(--g300);font-family:var(--mono);font-size:11.5px;color:var(--g500);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer.foot a{color:var(--g500);border-bottom:1px solid var(--g200)}
+footer.foot a:hover{color:var(--clay);border-color:var(--clay)}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">Team · AI Wiki</div>
+  <a class="back" href="index.html">← Back to main wiki</a>
+  <nav>
+    <a href="#what"        data-anchor="what"><span class="nb">01</span>What is this?</a>
+    <a href="#anatomy"     data-anchor="anatomy"><span class="nb">02</span>Page anatomy</a>
+    <a href="#reading"     data-anchor="reading"><span class="nb">03</span>How to read it</a>
+    <a href="#maintain"    data-anchor="maintain"><span class="nb">04</span>How to maintain it</a>
+    <a href="#fork"        data-anchor="fork"><span class="nb">05</span>Fork for your team</a>
+    <a href="#pipeline"    data-anchor="pipeline"><span class="nb">06</span>Build pipeline</a>
+    <a href="#tips"        data-anchor="tips"><span class="nb">07</span>Tips &amp; shortcuts</a>
+    <a href="#references"  data-anchor="references"><span class="nb">08</span>Reference roots</a>
+  </nav>
+  <div class="sb-foot">
+    Walkthrough &amp; references<br>
+    <a href="MAINTENANCE.md">MAINTENANCE.md</a> · <a href="CHANGELOG.md">CHANGELOG.md</a>
+  </div>
+</aside>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Walkthrough · for first-time readers &amp; maintainers</div>
+  <h1>How to read, maintain &amp; <em>fork</em> the AI Wikipedia template.</h1>
+  <p class="subtitle">
+    A guided tour through the main wiki page — what each section means, how the filter chips
+    work, how to add a row, and how to stand up an AI Wiki for your own team in five steps.
+    Everything illustrated. Reading time: ~6 minutes.
+  </p>
+  <dl class="kvgrid">
+    <dt>Audience</dt> <dd>Anyone opening <code>index.html</code> for the first time, or anyone about to edit content.</dd>
+    <dt>Status</dt>   <dd><span class="pill live">Living document</span> rebuilt with the wiki.</dd>
+    <dt>Source</dt>   <dd><code>handovers/00_WALKTHROUGH.html</code> (hand-edited)</dd>
+  </dl>
+</header>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="what">
+  <div class="sec-head"><span class="idx">01</span><h2>What is this?</h2></div>
+  <p class="sec-intro">A one-page, self-contained directory of every analytical workstream a team owns.</p>
+  <div class="body">
+    <p>
+      The main wiki (<a href="index.html">index.html</a>) is a single static HTML file that lists
+      <strong>every project, campaign, model, BAU procedure, strategy doc, and adhoc deliverable</strong>
+      the team currently owns or has handed off. Think of it as a Wikipedia article whose subject is
+      "the team's work" — every entry links out to the underlying notebook, SharePoint folder,
+      Word manual, or deep-dive sub-page.
+    </p>
+    <div class="callout">
+      <strong>One source of truth:</strong> the whole page is rendered from a single JSON file
+      (<code>handovers/inventory.json</code>) by a Python build script. To change what appears in the
+      wiki, you change that JSON — not the HTML.
+    </div>
+
+    <h3>The six categories</h3>
+    <p>Every row in the wiki belongs to exactly one of these:</p>
+    <div class="diagram">
+      <svg viewBox="0 0 940 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The six categories of the wiki">
+        <defs>
+          <style>
+            .cat-rect { fill: var(--paper); stroke: #D6CFBC; stroke-width: 1.5; }
+            .cat-rect.p { fill: #FBF5EE; stroke: #D97757; }
+            .cat-rect.b { fill: #F1F4EB; stroke: #788C5D; }
+            .cat-rect.s { fill: #F3F0F5; stroke: #7A6E8A; }
+          </style>
+        </defs>
+        <g>
+          <rect class="cat-rect p" x="20"  y="40" width="140" height="80" rx="10"/>
+          <text class="lbl"        x="32"  y="60">Strategic</text>
+          <text class="ttl"        x="32"  y="82">Projects</text>
+          <text class="meta"       x="32"  y="100">multi-quarter</text>
+          <text class="meta"       x="32"  y="114">PRJ-YYYY-NN</text>
+        </g>
+        <g>
+          <rect class="cat-rect"   x="175" y="40" width="140" height="80" rx="10"/>
+          <text class="lbl"        x="187" y="60">Customer-facing</text>
+          <text class="ttl"        x="187" y="82">Campaigns</text>
+          <text class="meta"       x="187" y="100">time-boxed</text>
+          <text class="meta"       x="187" y="114">CMP-YYYY-NN</text>
+        </g>
+        <g>
+          <rect class="cat-rect"   x="330" y="40" width="140" height="80" rx="10"/>
+          <text class="lbl"        x="342" y="60">Production</text>
+          <text class="ttl"        x="342" y="82">Models</text>
+          <text class="meta"       x="342" y="100">scoring · ML</text>
+          <text class="meta"       x="342" y="114">MOD-YYYY-NN</text>
+        </g>
+        <g>
+          <rect class="cat-rect b" x="485" y="40" width="140" height="80" rx="10"/>
+          <text class="lbl"        x="497" y="60">Recurring</text>
+          <text class="ttl"        x="497" y="82">BAU</text>
+          <text class="meta"       x="497" y="100">monthly · quarterly</text>
+          <text class="meta"       x="497" y="114">BAU-YYYY-NN</text>
+        </g>
+        <g>
+          <rect class="cat-rect s" x="640" y="40" width="140" height="80" rx="10"/>
+          <text class="lbl"        x="652" y="60">Annual cycles</text>
+          <text class="ttl"        x="652" y="82">Strategy</text>
+          <text class="meta"       x="652" y="100">plans · audits</text>
+          <text class="meta"       x="652" y="114">STR-YYYY-NN</text>
+        </g>
+        <g>
+          <rect class="cat-rect"   x="795" y="40" width="125" height="80" rx="10"/>
+          <text class="lbl"        x="807" y="60">One-offs</text>
+          <text class="ttl"        x="807" y="82">Adhoc</text>
+          <text class="meta"       x="807" y="100">deliverables log</text>
+          <text class="meta"       x="807" y="114">ADH-YYYY-NNN</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#FBF5EE;border-color:#D97757"></i>strategic</span>
+        <span><i style="background:#F1F4EB;border-color:#788C5D"></i>recurring</span>
+        <span><i style="background:#F3F0F5;border-color:#7A6E8A"></i>annual / strategy</span>
+        <span><i style="background:#FFFFFF;border-color:#D6CFBC"></i>regular</span>
+      </div>
+    </div>
+    <p>
+      Every bucket gets a numeric ID (<code>PRJ-2025-01</code>, <code>BAU-2019-03</code>, …) that
+      survives across years even when the project name changes. IDs are how the wiki cross-references
+      itself.
+    </p>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="anatomy">
+  <div class="sec-head"><span class="idx">02</span><h2>Page anatomy</h2></div>
+  <p class="sec-intro">Three regions: the persistent sidebar (left), the filter strip (top), and the section grid (centre).</p>
+  <div class="body">
+    <div class="diagram">
+      <svg viewBox="0 0 940 460" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Annotated wiki page layout: sidebar, filter chips, hero, section grid">
+        <defs>
+          <style>
+            .marker-circ { fill: #D97757; }
+            .marker-num  { fill: #FFFFFF; font-family: var(--mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
+          </style>
+        </defs>
+
+        <!-- browser-window chrome -->
+        <rect x="20" y="40" width="900" height="400" rx="10" fill="#FFFFFF" stroke="#141413" stroke-width="1.4"/>
+        <circle cx="38"  cy="58" r="4" fill="#D97757"/>
+        <circle cx="52"  cy="58" r="4" fill="#E3DACC"/>
+        <circle cx="66"  cy="58" r="4" fill="#788C5D"/>
+        <line x1="20" y1="76" x2="920" y2="76" stroke="#D6CFBC" stroke-width="1"/>
+
+        <!-- sidebar -->
+        <rect x="20" y="76" width="180" height="364" fill="#FAF9F5" stroke="#D6CFBC" stroke-width="1"/>
+        <text class="lbl" x="32" y="98">Team · AI Wiki</text>
+        <line x1="32" y1="106" x2="60" y2="106" stroke="#D97757" stroke-width="1.5"/>
+        <g font-family="var(--mono)" font-size="9" fill="#4D4A3F">
+          <text x="32" y="128">01 Projects</text>
+          <text x="32" y="144">02 Campaigns</text>
+          <text x="32" y="160">03 Models</text>
+          <text x="32" y="176">04 BAU</text>
+          <text x="32" y="192">05 Strategy</text>
+          <text x="32" y="208">06 Adhoc</text>
+          <text x="32" y="224" font-style="italic" fill="#7A7666">07 Archive</text>
+          <text x="32" y="240">08 Repo map</text>
+          <text x="32" y="256">09 Manuals</text>
+          <text x="32" y="272">10 Walkthrough</text>
+          <text x="32" y="288">11 Maintenance</text>
+        </g>
+        <!-- scroll-spy highlight on Projects -->
+        <rect x="28" y="116" width="160" height="16" rx="3" fill="#F2EFE7" stroke="#D97757" stroke-width="1"/>
+
+        <!-- filter chip strip -->
+        <rect x="210" y="88" width="700" height="36" rx="6" fill="#FAF9F5" stroke="#D6CFBC" stroke-width="1"/>
+        <g font-family="var(--mono)" font-size="9.5" fill="#4D4A3F">
+          <rect x="220" y="96" width="44" height="20" rx="10" fill="#FFFFFF" stroke="#D97757" stroke-width="1.2"/>
+          <text x="230" y="110">P0</text>
+          <rect x="270" y="96" width="44" height="20" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text x="280" y="110">P1</text>
+          <rect x="320" y="96" width="44" height="20" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text x="330" y="110">P2</text>
+          <line x1="380" y1="98" x2="380" y2="114" stroke="#D6CFBC"/>
+          <rect x="396" y="96" width="64" height="20" rx="10" fill="#F1F4EB" stroke="#788C5D"/>
+          <text x="406" y="110">Active</text>
+          <rect x="466" y="96" width="80" height="20" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text x="476" y="110">Completed</text>
+          <line x1="560" y1="98" x2="560" y2="114" stroke="#D6CFBC"/>
+          <rect x="572" y="96" width="40" height="20" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text x="580" y="110">2026</text>
+          <rect x="618" y="96" width="40" height="20" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text x="626" y="110">2025</text>
+        </g>
+
+        <!-- hero -->
+        <rect x="210" y="138" width="700" height="56" rx="8" fill="#FAF9F5" stroke="#D6CFBC"/>
+        <text font-family="var(--serif)" font-size="14" fill="#141413" x="222" y="162">The Team AI Wikipedia</text>
+        <text font-family="var(--mono)" font-size="9" fill="#8A8775" x="222" y="180">N buckets · M adhoc · K open items</text>
+
+        <!-- section cards grid (row 1) -->
+        <g>
+          <rect x="210" y="208" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <rect x="210" y="208" width="3"   height="76"         fill="#D97757"/>
+          <text font-family="var(--mono)"  font-size="9"  fill="#D97757" x="224" y="226">PRJ-2026-01</text>
+          <text font-family="var(--serif)" font-size="11" fill="#141413" x="224" y="244">Example project</text>
+          <text font-family="var(--mono)"  font-size="8"  fill="#8A8775" x="224" y="260">P0 · Active · 2026</text>
+
+          <rect x="446" y="208" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text font-family="var(--mono)"  font-size="9"  fill="#D97757" x="460" y="226">CMP-2026-01</text>
+          <text font-family="var(--serif)" font-size="11" fill="#141413" x="460" y="244">Example campaign</text>
+          <text font-family="var(--mono)"  font-size="8"  fill="#8A8775" x="460" y="260">P1 · Active · 2026</text>
+
+          <rect x="682" y="208" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text font-family="var(--mono)"  font-size="9"  fill="#D97757" x="696" y="226">MOD-2026-01</text>
+          <text font-family="var(--serif)" font-size="11" fill="#141413" x="696" y="244">Example model</text>
+          <text font-family="var(--mono)"  font-size="8"  fill="#8A8775" x="696" y="260">P1 · Active · 2026</text>
+        </g>
+        <!-- row 2 (empty placeholders) -->
+        <g>
+          <rect x="210" y="298" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <rect x="446" y="298" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <rect x="682" y="298" width="220" height="76" rx="8" fill="#FFFFFF" stroke="#D6CFBC"/>
+        </g>
+
+        <!-- numbered markers -->
+        <g>
+          <!-- 1: sidebar -->
+          <circle class="marker-circ" cx="178" cy="100" r="11"/>
+          <text   class="marker-num"  x="178" y="104">1</text>
+          <!-- 2: filter strip -->
+          <circle class="marker-circ" cx="892" cy="106" r="11"/>
+          <text   class="marker-num"  x="892" y="110">2</text>
+          <!-- 3: hero -->
+          <circle class="marker-circ" cx="892" cy="166" r="11"/>
+          <text   class="marker-num"  x="892" y="170">3</text>
+          <!-- 4: card row -->
+          <circle class="marker-circ" cx="892" cy="246" r="11"/>
+          <text   class="marker-num"  x="892" y="250">4</text>
+          <!-- 5: clay accent on first card -->
+          <circle class="marker-circ" cx="208" cy="246" r="11"/>
+          <text   class="marker-num"  x="208" y="250">5</text>
+        </g>
+      </svg>
+      <ol class="anatomy-legend">
+        <li><span class="m">1</span><b>Sidebar.</b> Numbered index of all 11 sections. Scroll-spy highlights the section you're currently viewing in clay-orange. Click to jump.</li>
+        <li><span class="m">2</span><b>Filter chip strip.</b> Three groups (Tier · Status · Year) separated by faint dividers. Chips combine with AND; the year list is auto-derived from the data.</li>
+        <li><span class="m">3</span><b>Hero counts.</b> Live totals — buckets, adhoc deliverables, open items. Refreshed on every rebuild.</li>
+        <li><span class="m">4</span><b>Card grid.</b> Auto-fitting grid (3 cols on desktop, 2 on tablet, 1 on phone). Every card links out to its source notebook, SharePoint folder, or deep-pack sub-page.</li>
+        <li><span class="m">5</span><b>Clay-orange left stripe.</b> Visual cue for <code>Tier=P0</code> or <code>Status=Active</code> — your eye lands on it first.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="reading">
+  <div class="sec-head"><span class="idx">03</span><h2>How to read it</h2></div>
+  <p class="sec-intro">Three reading modes for three audiences.</p>
+  <div class="body">
+    <div class="steps">
+      <div class="step-card">
+        <div class="num">Mode 01</div>
+        <div class="ttl">Browsing</div>
+        <div class="ds">Just scroll. Each section (§01 Projects, §02 Campaigns, …) is a self-contained grid of cards. Click any card to jump to the source notebook, SharePoint folder, or deep-dive sub-page.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Mode 02</div>
+        <div class="ttl">Filtering</div>
+        <div class="ds">Use the chip strip at the top: <b>Tier</b> (P0/P1/P2), <b>Status</b> (Active/Completed/Superseded/Retired), <b>Year</b> (auto-derived). Chips combine with AND. Clear all with one click. The <b>Retired</b> chip is the fast way to see only the Archive rows across all categories.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Mode 03</div>
+        <div class="ttl">Searching</div>
+        <div class="ds">Use the browser's <kbd>Ctrl</kbd>+<kbd>F</kbd>. The page is a single static HTML — keyword search just works, no server roundtrip.</div>
+      </div>
+    </div>
+    <h3>Card anatomy</h3>
+    <p>Every card carries the same elements in the same order — left to right, top to bottom:</p>
+    <ul>
+      <li><b>Eyebrow</b> — the bucket ID in clay-orange mono.</li>
+      <li><b>Title</b> — human-readable name (serif).</li>
+      <li><b>Meta strip</b> — tier + status + year pills.</li>
+      <li><b>Purpose</b> — one-sentence description.</li>
+      <li><b>Links</b> — GitHub repo path · SharePoint folder · deep-pack (when present).</li>
+    </ul>
+    <div class="callout olive">
+      <strong>Visual cues:</strong> a 3-pixel clay-orange left border means
+      <code>Tier=P0</code> or <code>Status=Active</code>. A soft shadow means the bucket has a per-project
+      deep-pack at &sect;09. A small footer thumb means the card opens a full mini-wiki.
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="maintain">
+  <div class="sec-head"><span class="idx">04</span><h2>How to maintain it</h2></div>
+  <p class="sec-intro">Three commands and a local admin page. No SharePoint List, no Power App.</p>
+  <div class="body">
+    <div class="diagram">
+      <svg viewBox="0 0 940 280" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Maintenance flow: serve_admin.py boots a local server; admin.html edits inventory.json with .bak rotation; rebuild_wiki.py renders index.html">
+        <defs>
+          <marker id="arr2" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L8 4 L0 8 z" fill="#141413"/>
+          </marker>
+          <marker id="arr-c" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L8 4 L0 8 z" fill="#D97757"/>
+          </marker>
+        </defs>
+
+        <!-- terminal box -->
+        <g>
+          <rect x="20" y="40" width="200" height="100" rx="10" fill="#141413"/>
+          <text font-family="var(--mono)" font-size="9.5" fill="#FAF9F5" x="32" y="64">$ python handovers/</text>
+          <text font-family="var(--mono)" font-size="9.5" fill="#FAF9F5" x="32" y="80">  serve_admin.py</text>
+          <text font-family="var(--mono)" font-size="9"   fill="#788C5D" x="32" y="100">Serving on 127.0.0.1:8765</text>
+          <text font-family="var(--mono)" font-size="9"   fill="#788C5D" x="32" y="116">Press Ctrl-C to stop.</text>
+          <!-- blinking cursor -->
+          <rect x="32" y="120" width="6" height="10" fill="#FAF9F5">
+            <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
+          </rect>
+          <text class="lbl" fill="#8A8775" x="32" y="32">Terminal</text>
+        </g>
+
+        <!-- arrow: terminal -> admin -->
+        <path class="flowline" d="M 220 90 L 280 90" stroke="#D97757" stroke-width="1.5" fill="none" marker-end="url(#arr-c)"/>
+
+        <!-- admin browser -->
+        <g>
+          <rect x="290" y="40" width="240" height="180" rx="10" fill="#FFFFFF" stroke="#141413" stroke-width="1.4"/>
+          <circle cx="306" cy="56" r="3" fill="#D97757"/>
+          <circle cx="318" cy="56" r="3" fill="#E3DACC"/>
+          <circle cx="330" cy="56" r="3" fill="#788C5D"/>
+          <rect x="345" y="50" width="170" height="12" rx="3" fill="#F2EFE7"/>
+          <text font-family="var(--mono)" font-size="7.5" fill="#4D4A3F" x="350" y="59">localhost:8765/admin.html</text>
+          <text font-family="var(--serif)" font-size="11" fill="#141413" x="302" y="86">Team · AI Wiki · admin</text>
+          <!-- tabs -->
+          <g font-family="var(--mono)" font-size="7.5">
+            <rect x="302" y="96"  width="40" height="14" rx="3" fill="#FAF9F5" stroke="#D97757"/>
+            <text x="312" y="106" fill="#D97757">Project</text>
+            <rect x="346" y="96"  width="44" height="14" rx="3" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <text x="354" y="106" fill="#4D4A3F">Campaign</text>
+            <rect x="394" y="96"  width="32" height="14" rx="3" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <text x="400" y="106" fill="#4D4A3F">Model</text>
+            <rect x="430" y="96"  width="28" height="14" rx="3" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <text x="436" y="106" fill="#4D4A3F">BAU</text>
+            <rect x="462" y="96"  width="32" height="14" rx="3" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <text x="468" y="106" fill="#4D4A3F">Strategy</text>
+          </g>
+          <!-- table rows -->
+          <g>
+            <rect x="302" y="116" width="216" height="18" fill="#FAF9F5" stroke="#D6CFBC"/>
+            <rect x="302" y="134" width="216" height="18" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <rect x="302" y="152" width="216" height="18" fill="#FFFFFF" stroke="#D6CFBC"/>
+            <text font-family="var(--mono)" font-size="7" fill="#4D4A3F" x="306" y="128">PRJ-2026-01 · Example project    · Active · P0</text>
+            <text font-family="var(--mono)" font-size="7" fill="#4D4A3F" x="306" y="146">PRJ-2025-01 · Past project       · Active · P1</text>
+            <text font-family="var(--mono)" font-size="7" fill="#4D4A3F" x="306" y="164">CMP-2026-01 · Example campaign   · Active · P1</text>
+            <rect x="430" y="180" width="80" height="20" rx="4" fill="#D97757"/>
+            <text font-family="var(--mono)" font-size="9" fill="#FAF9F5" x="450" y="194" font-weight="600">Save</text>
+            <!-- ping on save -->
+            <circle class="ping" cx="510" cy="190" r="4"/>
+          </g>
+        </g>
+
+        <!-- arrow: admin -> json -->
+        <path class="flowline" d="M 530 130 L 600 130" stroke="#141413" stroke-width="1.4" fill="none" marker-end="url(#arr2)"/>
+        <text font-family="var(--mono)" font-size="8" fill="#4D4A3F" x="540" y="124">HTTP PUT</text>
+        <text font-family="var(--mono)" font-size="8" fill="#8A8775" x="540" y="144">rotates .bak</text>
+
+        <!-- inventory.json hub -->
+        <g class="hub">
+          <rect x="610" y="80" width="140" height="100" rx="12" fill="#FBF5EE" stroke="#D97757" stroke-width="2"/>
+          <text class="lbl"  x="622" y="100" fill="#D97757">Source of truth</text>
+          <text class="ttl"  x="622" y="124" font-weight="600">inventory.json</text>
+          <text class="meta" x="622" y="142">N buckets</text>
+          <text class="meta" x="622" y="156">M adhoc</text>
+          <text class="meta" x="622" y="170">+ sp_overrides</text>
+        </g>
+
+        <!-- arrow: json -> rebuild -->
+        <path class="flowline" d="M 750 130 L 810 130" stroke="#141413" stroke-width="1.4" fill="none" marker-end="url(#arr2)"/>
+
+        <!-- rebuild output -->
+        <g>
+          <rect x="820" y="80" width="100" height="100" rx="10" fill="#F1F4EB" stroke="#788C5D" stroke-width="1.5"/>
+          <text class="lbl"  x="828" y="100" fill="#788C5D">rebuild</text>
+          <text class="ttl"  x="828" y="124">index.html</text>
+          <text class="meta" x="828" y="142">~200 KB</text>
+          <text class="meta" x="828" y="156">single file</text>
+          <text class="meta" x="828" y="170">portable</text>
+        </g>
+
+        <!-- footer caption -->
+        <text font-family="var(--serif)" font-style="italic" font-size="12" fill="#4D4A3F" x="20" y="260">
+          1. Start server  →  2. Edit in browser  →  3. Save (PUT)  →  4. rebuild_wiki.py  →  5. git push
+        </text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#FBF5EE;border-color:#D97757"></i>source of truth</span>
+        <span><i style="background:#F1F4EB;border-color:#788C5D"></i>generated artifact</span>
+        <span><i style="background:#141413;border-color:#141413"></i>tool / terminal</span>
+      </div>
+    </div>
+
+    <h3>The 60-second loop</h3>
+    <pre><code># 1. Boot the loopback admin server (no firewall prompt)
+python handovers/serve_admin.py
+
+# 2. Browser opens automatically at localhost:8765/admin.html
+#    Six tabs · edit inline · validation · soft-delete via Status=Retired
+#    Ctrl-S to save (the server writes inventory.json + rotates .bak)
+
+# 3. Rebuild
+python handovers/scripts/rebuild_wiki.py
+
+# 4. Eyeball index.html, then commit
+git add handovers/inventory.json handovers/index.html handovers/CHANGELOG.md
+git commit -m "wiki: <what changed>"
+git push</code></pre>
+
+    <div class="callout mauve">
+      <strong>Two ways to remove a row, and they are not the same.</strong>
+      <ul style="margin:8px 0 0 18px;padding:0">
+        <li><b>Soft-delete (recommended)</b> &mdash; change the row's <b>Status</b> dropdown to <code>Retired</code>.
+          The row drops out of its live category section (Projects / Campaigns / …) and the main sidebar count,
+          but it <em>still renders</em> in the wiki's <b>Archive</b> section — a muted, category-grouped table of
+          retired buckets so newcomers can still search, find, and read about obsolete work. The repo&nbsp;↔&nbsp;bucket
+          map also keeps the row so cross-references stay complete. Toggle <em>show retired</em> in the admin to
+          bring it back into the editor; flip Status to <code>Active</code> / <code>Completed</code> to fully restore it.</li>
+        <li><b>Hard-delete</b> &mdash; click the row's <b>Delete</b> button. This <em>permanently</em> removes the
+          row from <code>inventory.json</code> (along with any linked <code>narratives</code>, <code>mini_wikis</code>,
+          and <code>sp_overrides</code> entries). Use only if the row was created in error. The previous file is
+          kept as <code>inventory.json.bak</code>.</li>
+      </ul>
+    </div>
+
+    <p>For the full reference — allowed values, ID conventions, troubleshooting, cadence — read
+      <a href="MAINTENANCE.md">MAINTENANCE.md</a>.</p>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="fork">
+  <div class="sec-head"><span class="idx">05</span><h2>Fork it for your team</h2></div>
+  <p class="sec-intro">The same six categories work for any analytics function. Stand up your own AI Wiki in five steps.</p>
+  <div class="body">
+    <div class="steps">
+      <div class="step-card">
+        <div class="num">Step 01</div>
+        <div class="ttl">Clone or copy</div>
+        <div class="ds">Fork the repo, or just download the <code>handovers/</code> folder into your own repo. Self-contained: only Python stdlib + (optional) Playwright for UAT.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Step 02</div>
+        <div class="ttl">Edit the starter inventory</div>
+        <div class="ds">A pre-seeded <code>inventory.json</code> ships with one example row per category (6 buckets, 2 adhoc, 2 open items). Edit it directly or wipe it and start blank.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Step 03</div>
+        <div class="ttl">Add your buckets</div>
+        <div class="ds">Launch <code>serve_admin.py</code>, edit in the browser. Soft-delete the samples, add your own. Update <code>_meta.owner</code> in the JSON.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Step 04</div>
+        <div class="ttl">Edit narratives (optional)</div>
+        <div class="ds">Per-bucket "Decisions baked in" and "Open questions" live inside <code>inventory.json</code> under <code>narratives</code>. Edit via the 📝 button in <code>admin.html</code>. Skip this if you don't have deep packs.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Step 05</div>
+        <div class="ttl">Build &amp; publish</div>
+        <div class="ds"><code>rebuild_wiki.py</code> renders <code>index.html</code>. Commit + push; if GitHub Pages is on, your site is live in 5–10 minutes. Or just open the HTML locally.</div>
+      </div>
+      <div class="step-card">
+        <div class="num">Step 06</div>
+        <div class="ttl">Rebrand (optional)</div>
+        <div class="ds">Find/replace the wiki title (default <code>The Team AI Wikipedia</code>) and the sidebar brand (<code>Team · AI Wiki</code>) in <code>step11_build_wiki.py</code> and <code>admin.html</code>. ~5 occurrences total.</div>
+      </div>
+    </div>
+
+    <h3>What stays the same vs. what changes</h3>
+    <div class="compare">
+      <div class="col fixed">
+        <h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Stays the same
+        </h4>
+        <ul>
+          <li><b>The six categories</b> — Project · Campaign · Model · BAU · Strategy · Adhoc.</li>
+          <li><b>ID conventions</b> — <code>PRJ-YYYY-NN</code>, <code>ADH-YYYY-NNN</code>, etc.</li>
+          <li><b>Allowed statuses</b> — Active · Completed · Superseded · Retired.</li>
+          <li><b>The Birchline design system</b> — palette, type scale, card variants.</li>
+          <li><b>Build pipeline</b> — init &rarr; admin &rarr; rebuild.</li>
+        </ul>
+      </div>
+      <div class="col edit">
+        <h4>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+          </svg>
+          You change
+        </h4>
+        <ul>
+          <li><b>The rows</b> under each category — your projects, your campaigns.</li>
+          <li><b>The actual IDs</b> you assign (the <em>format</em> stays the same).</li>
+          <li><b>Which status</b> each of your rows is in.</li>
+          <li><b>The brand title</b> + your team's name (~5 occurrences in 2 files).</li>
+          <li><b>Your SharePoint root</b> — search <code>SP_ROOT</code> in <code>step11_build_wiki.py</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="pipeline">
+  <div class="sec-head"><span class="idx">06</span><h2>Build pipeline</h2></div>
+  <p class="sec-intro">What runs when you say "rebuild". Two Python scripts and a JSON file. That's it.</p>
+  <div class="body">
+    <div class="diagram">
+      <svg viewBox="0 0 940 240" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Build pipeline: inventory.json feeds step6 (xlsx artifact) and step11 (index.html). step11 also reads inventory.json:narratives for deep-pack narrative content.">
+        <defs>
+          <marker id="arrp" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L8 4 L0 8 z" fill="#141413"/>
+          </marker>
+        </defs>
+
+        <!-- inventory.json (left, large) -->
+        <g class="hub">
+          <rect x="20" y="80" width="180" height="80" rx="12" fill="#FBF5EE" stroke="#D97757" stroke-width="2"/>
+          <text class="lbl" x="32" y="100" fill="#D97757">SOURCE</text>
+          <text class="ttl" x="32" y="122" font-weight="600">inventory.json</text>
+          <text class="meta" x="32" y="140">single source of truth</text>
+          <text class="meta" x="32" y="154">your buckets + adhoc</text>
+        </g>
+
+        <!-- prj_narrative.json (smaller, below) -->
+        <g>
+          <rect x="40" y="180" width="140" height="44" rx="8" fill="#F3F0F5" stroke="#7A6E8A" stroke-width="1.4"/>
+          <text class="lbl" x="50" y="198" fill="#7A6E8A">SIDECAR</text>
+          <text class="ttl" x="50" y="216">prj_narrative.json</text>
+        </g>
+
+        <!-- arrows: source -> two builders -->
+        <line x1="200" y1="100" x2="266" y2="60"  stroke="#141413" stroke-width="1.5" marker-end="url(#arrp)"/>
+        <line x1="200" y1="140" x2="266" y2="140" stroke="#141413" stroke-width="1.5" marker-end="url(#arrp)"/>
+        <line x1="180" y1="200" x2="266" y2="160" stroke="#7A6E8A" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrp)"/>
+
+        <!-- step6 -->
+        <g>
+          <rect x="270" y="34"  width="170" height="52" rx="10" fill="#FFFFFF" stroke="#141413" stroke-width="1.4"/>
+          <text class="lbl" x="282" y="52">PYTHON · STDLIB</text>
+          <text class="ttl" x="282" y="74">step6_build_inventory.py</text>
+        </g>
+
+        <!-- step11 -->
+        <g>
+          <rect x="270" y="116" width="170" height="52" rx="10" fill="#FFFFFF" stroke="#141413" stroke-width="1.4"/>
+          <text class="lbl" x="282" y="134">PYTHON · STDLIB</text>
+          <text class="ttl" x="282" y="156">step11_build_wiki.py</text>
+        </g>
+
+        <!-- arrows -->
+        <line x1="440" y1="60"  x2="510" y2="60"  stroke="#141413" stroke-width="1.5" marker-end="url(#arrp)"/>
+        <line x1="440" y1="142" x2="510" y2="142" stroke="#141413" stroke-width="1.5" marker-end="url(#arrp)"/>
+
+        <!-- outputs -->
+        <g>
+          <rect x="515" y="34"  width="190" height="52" rx="10" fill="#F1F4EB" stroke="#788C5D" stroke-width="1.5"/>
+          <text class="lbl" x="527" y="52" fill="#788C5D">ARTIFACT · for audit</text>
+          <text class="ttl" x="527" y="74">inventory.xlsx</text>
+        </g>
+        <g>
+          <rect x="515" y="116" width="190" height="52" rx="10" fill="#F1F4EB" stroke="#788C5D" stroke-width="1.5"/>
+          <text class="lbl" x="527" y="134" fill="#788C5D">PUBLISHED · for humans</text>
+          <text class="ttl" x="527" y="156">index.html (single-file)</text>
+        </g>
+
+        <!-- + mini-wikis stacked card -->
+        <g>
+          <rect x="740" y="116" width="170" height="52" rx="10" fill="#FFFFFF" stroke="#D6CFBC"/>
+          <text class="lbl" x="752" y="134">+ COMMITTED</text>
+          <text class="ttl" x="752" y="156">00_*.html mini-wikis</text>
+        </g>
+        <line x1="705" y1="142" x2="740" y2="142" stroke="#D6CFBC" stroke-width="1.2" stroke-dasharray="3 3"/>
+
+        <!-- legend caption -->
+        <text font-family="var(--serif)" font-style="italic" font-size="12" fill="#4D4A3F" x="20" y="22">
+          One source, two outputs, zero database.
+        </text>
+      </svg>
+    </div>
+
+    <h3>What each piece does</h3>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Role</th><th>You edit it?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>inventory.json</code></td><td>Single source of truth for every bucket / adhoc / open item</td><td>Yes (via <code>admin.html</code>)</td></tr>
+        <tr><td><code>prj_narrative.json</code></td><td>(deprecated — folded into <code>inventory.json:narratives</code>) Free-text "decisions / open questions" for deep packs</td><td>Yes (admin.html 📝 button)</td></tr>
+        <tr><td><code>serve_admin.py</code></td><td>Tiny loopback HTTP server (PUT writes JSON + rotates .bak)</td><td>No</td></tr>
+        <tr><td><code>admin.html</code></td><td>Birchline-styled vanilla-JS editor</td><td>No (unless theming)</td></tr>
+        <tr><td><code>step6_build_inventory.py</code></td><td>Regenerates the audit xlsx from JSON</td><td>No</td></tr>
+        <tr><td><code>step11_build_wiki.py</code></td><td>Renders <code>index.html</code> + sidebar + filter chips</td><td>Theme tweaks only</td></tr>
+        <tr><td><code>00_*.html</code></td><td>Per-bucket deep-pack mini-wikis (hand-edited)</td><td>Yes (for owned buckets)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="tips">
+  <div class="sec-head"><span class="idx">07</span><h2>Tips &amp; shortcuts</h2></div>
+  <p class="sec-intro">Small things that make daily reading and editing faster.</p>
+  <div class="body">
+    <dl class="tips">
+      <dt>Reading</dt>
+      <dd><kbd>Ctrl</kbd>+<kbd>F</kbd> searches the whole page — IDs, names, purposes, all of it. There's no separate search box because there doesn't need to be one.</dd>
+
+      <dt>Filtering</dt>
+      <dd>Chips at the top of <code>index.html</code> stack (AND). Click an active chip again to deselect. The "All" pseudo-chip clears the group.</dd>
+
+      <dt>Editing</dt>
+      <dd><kbd>Ctrl</kbd>+<kbd>S</kbd> saves from <code>admin.html</code>. <kbd>Esc</kbd> closes the add-row modal. The browser-tab title flips to "• unsaved" when there are pending changes.</dd>
+
+      <dt>Validation</dt>
+      <dd>Rows with a red gutter are blocked from saving. Hover the row to see why (ID prefix mismatch, malformed year, bad date format).</dd>
+
+      <dt>Undo a bad save</dt>
+      <dd>The server rotates <code>inventory.json.bak</code> <em>before</em> every write. To roll back: stop the server, copy <code>.bak</code> over <code>inventory.json</code>, restart.</dd>
+
+      <dt>Adhoc dates</dt>
+      <dd>Any edit on an adhoc row auto-stamps <code>last_touch</code> to today's date. You never set it by hand.</dd>
+
+      <dt>Year chips</dt>
+      <dd>The year filter chips on <code>index.html</code> are auto-derived on every rebuild from the data. Adding a 2027 bucket automatically adds a 2027 chip next rebuild.</dd>
+
+      <dt>Mobile</dt>
+      <dd>Sidebar collapses to a top strip below 1100 px. All sections stay readable on a phone.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────────── -->
+<section id="references">
+  <div class="sec-head"><span class="idx">08</span><h2>Reference roots</h2></div>
+  <p class="sec-intro">The five canonical sources of truth every link in the main wiki ultimately resolves to.</p>
+  <div class="body">
+    <div class="refs">
+      <a href="index.html" target="_self">
+        <div class="lab">Main page</div>
+        <div class="ttl">index.html</div>
+        <div class="ds">The wiki itself — single self-contained HTML file rebuilt from inventory.json.</div>
+      </a>
+      <a href="inventory.xlsx" target="_blank">
+        <div class="lab">Workbook</div>
+        <div class="ttl">inventory.xlsx</div>
+        <div class="ds">Ten-sheet audit artifact — generated from inventory.json as a fail-safe copy.</div>
+      </a>
+      <a href="inventory.json" target="_blank">
+        <div class="lab">Source</div>
+        <div class="ttl">inventory.json</div>
+        <div class="ds">The single source of truth — edit via <code>admin.html</code>, never by hand.</div>
+      </a>
+      <a href="admin.html" target="_blank">
+        <div class="lab">Editor</div>
+        <div class="ttl">admin.html</div>
+        <div class="ds">Browser-based JSON editor. Boot with <code>python serve_admin.py</code>.</div>
+      </a>
+      <a href="README.md" target="_blank">
+        <div class="lab">Start here</div>
+        <div class="ttl">README.md</div>
+        <div class="ds">60-second quick-start for your own team. Read this first.</div>
+      </a>
+    </div>
+
+    <h3>Further reading</h3>
+    <ul>
+      <li><a href="MAINTENANCE.md">MAINTENANCE.md</a> — the full edit / rebuild / commit reference.</li>
+      <li><a href="CHANGELOG.md">CHANGELOG.md</a> — prepend a one-liner every time you rebuild.</li>
+      <li><a href="index.html#maintenance">&sect;10 Maintenance cards</a> &mdash; the four-card grid on the main page.</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="foot">
+  <div><a href="index.html">← Back to main wiki</a> · <a href="MAINTENANCE.md">maintenance</a> · <a href="CHANGELOG.md">changelog</a></div>
+  <div>Walkthrough · starter template · customise for your team</div>
+</footer>
+
+</div>
+
+<script>
+/* Scroll-spy: highlight sidebar entry matching current section */
+(function(){
+  const links = document.querySelectorAll('aside.sidebar nav a[data-anchor]');
+  const map = {};
+  links.forEach(a => map[a.dataset.anchor] = a);
+  const sections = Array.from(document.querySelectorAll('section[id]'));
+  function spy(){
+    let cur = sections[0]?.id;
+    const y = window.scrollY + 120;
+    for (const s of sections){ if (s.offsetTop <= y) cur = s.id; else break; }
+    Object.values(map).forEach(a => a.classList.remove('active'));
+    if (cur && map[cur]) map[cur].classList.add('active');
+  }
+  window.addEventListener('scroll', spy, {passive:true});
+  spy();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Semantic Model — VN AI Wiki</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  /* ─── Birchline palette (mirrors handovers/assets/wiki.css) ──────────── */
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --crimson:#A8453A;
+    --info:   #5C7CA3;
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #D1CFC5;
+    --g500:   #6F6E68;
+    --g700:   #3D3D3A;
+    --shadow-1: 0 1px 2px rgba(20,20,19,.06);
+    --shadow-2: 0 4px 10px rgba(20,20,19,.08);
+    --shadow-3: 0 12px 28px rgba(20,20,19,.12);
+    --ease:   cubic-bezier(.16, 1, .3, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
+    --sans:   system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono:   ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+    /* semantic-page specific */
+    --raw:     var(--info);     /* raw / source tables */
+    --curated: var(--clay);     /* team-owned / curated tables */
+    --edge:    var(--g300);
+    --edge-hi: var(--clay-d);
+    --pii:     var(--crimson);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ivory); color: var(--slate);
+    font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: var(--clay-d); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { padding: 12px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background: var(--paper); border-bottom: 1.5px solid var(--g300); box-shadow: var(--shadow-1); }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; color: var(--slate); }
+  header .crumbs { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--g500); }
+  header .crumbs a { color: var(--clay-d); }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--g500); align-items: center; }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    vertical-align: middle; margin-right: 6px; }
+  #reset-layout { display: none; margin-left: 6px; padding: 3px 9px;
+    background: var(--paper); color: var(--g500); border: 1px solid var(--g300);
+    border-radius: 6px; font-family: var(--sans); font-size: 11px; cursor: pointer;
+    transition: background .15s var(--ease), color .15s var(--ease); }
+  #reset-layout:hover { background: var(--clay-l); color: var(--clay-d); border-color: var(--clay); }
+
+  /* ─── Search omnibox ────────────────────────────────────────────────── */
+  .search-wrap { position: relative; flex: 1 1 280px; max-width: 460px;
+    margin: 0 6px; }
+  #search { width: 100%; padding: 7px 32px 7px 32px; font-size: 13px; font-family: var(--sans);
+    border: 1.5px solid var(--g300); border-radius: 8px; background: var(--ivory);
+    color: var(--slate); outline: none; transition: border-color .2s, box-shadow .2s; }
+  #search::placeholder { color: var(--g500); }
+  #search:focus { border-color: var(--clay); box-shadow: 0 0 0 3px rgba(217,119,87,.18);
+    background: var(--paper); }
+  .search-wrap::before { content: "⌕"; position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%); color: var(--g500); font-size: 14px; pointer-events: none; }
+  .search-kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 10px; color: var(--g500);
+    background: var(--g100); border: 1px solid var(--g200); border-radius: 4px;
+    padding: 1px 5px; pointer-events: none; }
+  #search:focus ~ .search-kbd { display: none; }
+
+  #search-results { position: absolute; left: 0; right: 0; top: calc(100% + 6px);
+    background: var(--paper); border: 1.5px solid var(--g300); border-radius: 10px;
+    box-shadow: var(--shadow-3); max-height: 70vh; overflow-y: auto;
+    z-index: 50; padding: 6px 0; display: none; }
+  #search-results.open { display: block; }
+  #search-results .sr-group { padding: 4px 0; }
+  #search-results .sr-group + .sr-group { border-top: 1px solid var(--g200); }
+  #search-results .sr-head { padding: 6px 14px 4px; font-family: var(--mono);
+    font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--g500); }
+  #search-results .sr-row { padding: 6px 14px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: baseline; gap: 8px; line-height: 1.35; }
+  #search-results .sr-row:hover, #search-results .sr-row.active { background: var(--g100); }
+  #search-results .sr-name { color: var(--slate); font-family: var(--mono);
+    word-break: break-all; }
+  #search-results .sr-name b { color: var(--clay-d); font-weight: 700; background: rgba(217,119,87,.12); }
+  #search-results .sr-meta { color: var(--g500); font-size: 11px; font-family: var(--mono);
+    margin-left: auto; flex-shrink: 0; max-width: 55%; text-align: right;
+    word-break: break-all; }
+  #search-results .sr-empty { padding: 14px; color: var(--g500); font-style: italic;
+    font-size: 12px; text-align: center; }
+  #search-results .sr-more { padding: 4px 14px 6px; font-size: 11px; color: var(--g500);
+    font-style: italic; }
+
+  /* Flash highlight on a column row after a column search-result click */
+  @keyframes col-flash {
+    0%   { background: rgba(217,119,87,.35); }
+    100% { background: transparent; }
+  }
+  table.cols tr.col-flash > td { animation: col-flash 1.6s var(--ease); }
+
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    vertical-align: middle; margin-right: 6px; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 400px; height: calc(100vh - 54px); }
+  #canvas { position: relative; overflow: hidden; background:
+    radial-gradient(1200px 800px at 30% 20%, var(--paper) 0%, var(--ivory) 70%); }
+  svg { width: 100%; height: 100%; display: block; }
+
+  /* ─── View toggle (Domain map / Table model) ──────────────────────── */
+  .view-toggle { display: inline-flex; border: 1.5px solid var(--g300);
+    border-radius: 999px; overflow: hidden; background: var(--paper);
+    margin-left: 12px; font-family: var(--mono); font-size: 12px; }
+  .view-toggle button { background: transparent; color: var(--g700); border: 0;
+    padding: 5px 12px; cursor: pointer; font: inherit; letter-spacing: .02em; }
+  .view-toggle button.active { background: var(--clay); color: var(--paper); }
+  .view-toggle button:hover:not(.active) { background: var(--g100); }
+
+  /* ─── Zoom toolbar (Domain map mode) ──────────────────────────────── */
+  .zoom-toolbar { position: absolute; top: 12px; right: 12px; z-index: 5;
+    display: inline-flex; border: 1.5px solid var(--g300); border-radius: 8px;
+    overflow: hidden; background: var(--paper); box-shadow: var(--shadow-1);
+    font-family: var(--mono); font-size: 12px; }
+  .zoom-toolbar button { background: var(--paper); border: 0; color: var(--g700);
+    padding: 5px 10px; cursor: pointer; font: inherit; min-width: 30px;
+    border-right: 1px solid var(--g200); }
+  .zoom-toolbar button:last-child { border-right: 0; }
+  .zoom-toolbar button:hover { background: var(--g100); color: var(--clay-d); }
+  .zoom-toolbar .zoom-readout { padding: 5px 10px; color: var(--g500);
+    border-right: 1px solid var(--g200); min-width: 44px; text-align: center; }
+  #canvas.is-panning { cursor: grabbing !important; }
+  #canvas.is-panning .domain-bubble { cursor: grabbing; }
+
+  /* ─── Table model mode ────────────────────────────────────────────── */
+  /* Hidden by default; revealed when the user picks Table model. We reuse the
+     existing #side renderer's table-card markup, just laid out as a grid and
+     given an HTML-level zoom (CSS transform: scale on the inner container). */
+  #table-model { position: absolute; inset: 0; overflow: auto; display: none;
+    background: var(--ivory); padding: 24px; }
+  body.view-table #table-model { display: block; }
+  body.view-table #svg { display: none; }
+  body.view-table aside#side { display: none; }
+  body.view-table main { grid-template-columns: 1fr; }
+  #table-model .tm-inner { transform-origin: 0 0;
+    transition: transform .2s var(--ease); }
+  #table-model .tm-domain { margin: 0 0 30px; }
+  #table-model .tm-domain-head { display: flex; align-items: center; gap: 10px;
+    margin: 0 0 12px; padding: 6px 12px; border-radius: 999px;
+    background: var(--paper); border: 1.5px solid var(--g300); width: max-content;
+    font-family: var(--mono); font-weight: 600; font-size: 14px; }
+  #table-model .tm-domain-head .icn { font-size: 18px; }
+  #table-model .tm-domain-head .swatch { width: 10px; height: 10px; border-radius: 50%; }
+  #table-model .tm-grid { display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  #table-model .table-card { margin: 0; max-height: 480px; overflow: auto;
+    transition: outline .2s var(--ease), box-shadow .25s var(--ease); }
+  #table-model .table-card.flash { outline: 2px solid var(--clay);
+    outline-offset: 3px; box-shadow: 0 0 0 6px rgba(217,119,87,.18); }
+  #table-model .tm-empty { color: var(--g500); font-style: italic;
+    padding: 40px; text-align: center; }
+
+  /* ─── Search highlight on satellite bubbles ───────────────────────── */
+  /* When the user picks a Table or Column result from the omnibox, the matching
+     satellite gets `.search-hit` (sticky highlight) and all OTHER currently-
+     visible satellites get `.search-dim` so the eye lands on the right one even
+     when the domain has 20+ tables ringed around it. Cleared on next select. */
+  .table-bubble.search-hit circle.tbl { stroke: var(--clay); stroke-width: 3;
+    fill: var(--clay-l);
+    filter: drop-shadow(0 0 14px var(--clay)); }
+  .table-bubble.search-hit text { fill: var(--clay-d); font-weight: 700; }
+  .table-bubble.search-dim { opacity: .25; }
+  @keyframes sat-pulse {
+    0%, 100% { transform: scale(1); }
+    35%      { transform: scale(1.45); }
+    70%      { transform: scale(1.18); }
+  }
+  .table-bubble.search-hit.visible { animation: sat-pulse 1.6s var(--spring) 1; }
+
+
+  /* ─── Domain bubble (big, hand-positioned) ────────────────────────── */
+  /* ─── Domain bubble (big, hand-positioned) ────────────────────────── */
+  /* The CSS `transform` composes a per-domain nudge (CSS vars --ndx/--ndy,
+   * set by the drag system) with the existing :hover / .active scale and
+   * the breathe animation. SVG `transform=` attribute is reserved for
+   * satellites + edges (which don't share these CSS animations). */
+  .domain-bubble { cursor: grab;
+    transition: transform .35s var(--ease), filter .35s var(--ease);
+    transform-origin: center; transform-box: fill-box;
+    transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)); }
+  .domain-bubble.dragging { cursor: grabbing; transition: none; }
+  .domain-bubble.dragging,
+  .domain-bubble.dragging:hover { transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)); }
+  .domain-bubble circle.dom { fill: var(--paper); stroke-width: 3;
+    filter: drop-shadow(0 6px 14px rgba(20,20,19,.10)); }
+  .domain-bubble text.label { fill: var(--slate); font-size: 15px; font-weight: 600;
+    text-anchor: middle; pointer-events: none; font-family: var(--sans); }
+  .domain-bubble text.icon  { font-size: 26px; text-anchor: middle; pointer-events: none; }
+  .domain-bubble text.count { fill: var(--g500); font-size: 11px; text-anchor: middle;
+    pointer-events: none; font-family: var(--mono); letter-spacing: .04em; }
+  .domain-bubble:hover { transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)) scale(1.06); }
+  .domain-bubble:hover circle.dom { filter: drop-shadow(0 0 18px var(--clay)); }
+  .domain-bubble.active { transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)) scale(1.12); }
+  .domain-bubble.active circle.dom { filter: drop-shadow(0 0 22px var(--clay)); }
+
+  @keyframes breathe {
+    0%,100% { transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)) scale(1); }
+    50%     { transform: translate(var(--sdx,0px), var(--sdy,0px)) translate(var(--ndx,0px), var(--ndy,0px)) scale(1.02); }
+  }
+  .domain-bubble { animation: breathe 5s ease-in-out infinite; }
+  .domain-bubble:nth-of-type(2n) { animation-delay: -1.5s; }
+  .domain-bubble:nth-of-type(3n) { animation-delay: -3s; }
+  .domain-bubble.active, .domain-bubble:hover, .domain-bubble.dragging { animation: none; }
+
+  /* ─── Satellite table bubble (small, ring-positioned) ──────────────── */
+  /* Outer <g> carries the SVG `transform="translate(x,y)"` attribute (positioning).
+     Inner <g class="table-bubble"> carries the CSS transform (scale animation).
+     Keeping these on separate elements prevents CSS transform from clobbering
+     the SVG transform attribute (which would dump bubbles at origin 0,0). */
+  .table-bubble { cursor: pointer; opacity: 0;
+    transform: scale(0.25);
+    transform-origin: center; transform-box: fill-box;
+    transition: opacity .35s var(--ease), transform .4s var(--spring); }
+  .table-bubble.visible { opacity: 1; transform: scale(1); }
+  .table-bubble circle.tbl { fill: var(--paper); stroke: var(--raw); stroke-width: 2;
+    filter: drop-shadow(0 2px 4px rgba(20,20,19,.08)); }
+  .table-bubble.curated circle.tbl { stroke: var(--curated); stroke-dasharray: 5 3; }
+  .table-bubble text { fill: var(--slate); font-size: 10px; text-anchor: middle;
+    pointer-events: none; font-family: var(--mono); }
+  .table-bubble:hover circle.tbl { fill: var(--g100);
+    filter: drop-shadow(0 0 10px var(--clay)); }
+
+  /* ─── Dense-domain dots ─────────────────────────────────────────────── */
+  /* When a domain owns more than 12 satellites, the labels overlap and the
+     ring becomes a hairball. We collapse those satellites into tiny dots
+     in BOTH overview and Solo focus, mirroring how the Semantic Editor
+     renders crowded domains. The reader reveals one table at a time by
+     hovering its dot — the dot grows and its label appears. Search hits
+     also enlarge the corresponding dot. There is deliberately no
+     "expand all" affordance: click-to-solo positions the focused puck in
+     the centre but does NOT re-inflate the satellites, because doing so
+     reproduces exactly the overlapping-labels failure we are trying to
+     avoid. */
+  .satellites-wrap.dense .table-bubble circle.tbl { r: 3.5; stroke-width: 1.5; }
+  .satellites-wrap.dense .table-bubble text       { display: none; }
+  .satellites-wrap.dense .table-bubble:hover circle.tbl { r: 22; stroke-width: 2; }
+  .satellites-wrap.dense .table-bubble:hover text       { display: block; }
+  .satellites-wrap.dense .table-bubble.search-hit circle.tbl { r: 6; }
+  .satellites-wrap.dense .table-bubble.search-hit text       { display: block; }
+
+  /* ─── Edges ─────────────────────────────────────────────────────────── */
+  .edge { stroke: var(--edge); stroke-width: 1.5; fill: none; opacity: .6;
+    transition: opacity .3s, stroke .3s, stroke-width .3s; }
+  .edge.kind-derived_from { stroke-dasharray: 5 4; }
+  .edge.hi { stroke: var(--edge-hi); opacity: 1; stroke-width: 2.5; }
+  .edge.solo-hidden { display: none; }
+
+  /* ─── Solo (focus) mode ─────────────────────────────────────────────── */
+  /* A click on a domain enters Solo: focused puck translates to the canvas
+     centre via --sdx/--sdy; the other domains slide to a perimeter ring as
+     dimmed dashed "ghost" pucks; their satellites are hidden; non-focused
+     edges drop out. Esc / empty-click / breadcrumb / re-click exit. */
+  .satellites-wrap.solo-hidden { display: none; }
+  body.view-solo .domain-bubble.is-ghost {
+    opacity: .55; animation: none; pointer-events: auto; cursor: pointer; }
+  body.view-solo .domain-bubble.is-ghost:hover { opacity: .85; }
+  body.view-solo .domain-bubble.is-ghost circle.dom {
+    stroke-dasharray: 4 4; stroke-width: 2; filter: none; }
+  body.view-solo .domain-bubble.is-ghost text.count { display: none; }
+  body.view-solo .domain-bubble.is-focused { animation: none; }
+
+  #solo-controls { position: absolute; top: 14px; left: 14px;
+    display: none; gap: 6px; z-index: 5; pointer-events: auto; }
+  body.view-solo #solo-controls { display: inline-flex; }
+  body.view-table #solo-controls { display: none; }
+  .solo-chip { display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 13px;
+    background: var(--paper); border: 1.5px solid var(--g300);
+    font-size: 12px; color: var(--g700); cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s; }
+  .solo-chip:hover { background: var(--clay-l); border-color: var(--clay); color: var(--clay-d); }
+  .solo-chip-name { background: transparent; border: 0; padding: 4px 6px;
+    color: var(--slate); font-weight: 600; cursor: default; }
+  .solo-chip-name:hover { background: transparent; border: 0; color: var(--slate); }
+  @keyframes solo-pop {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); } }
+  body.view-solo #solo-controls { animation: solo-pop .25s var(--ease); }
+
+  /* ─── Side panel ────────────────────────────────────────────────────── */
+  #side { background: var(--paper); border-left: 1.5px solid var(--g300);
+    overflow-y: auto; overflow-x: hidden; padding: 22px 24px; min-width: 0; }
+  #side h2 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+  #side .desc { color: var(--g700); font-size: 13px; margin: 0 0 14px; }
+  #side .desc ul { padding-left: 18px; margin: 8px 0; }
+  #side .empty { color: var(--g500); font-style: italic; }
+
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px;
+    background: var(--g100); color: var(--g700); margin: 2px 4px 2px 0;
+    font-family: var(--mono); border: 1px solid var(--g200); }
+  .chip a { color: inherit; text-decoration: none; }
+  .chip a:hover { text-decoration: underline; }
+  .chip.layer-raw     { background: rgba(92,124,163,.12); color: var(--info); border-color: rgba(92,124,163,.3); }
+  .chip.layer-curated { background: rgba(217,119,87,.12); color: var(--clay-d); border-color: rgba(217,119,87,.3); }
+  .chip.bucket { background: var(--paper); border-color: var(--clay); color: var(--clay-d); }
+
+  .table-card { background: var(--ivory); border-radius: 10px; padding: 14px 16px;
+    margin: 12px 0; border-left: 3px solid var(--raw);
+    box-shadow: var(--shadow-1); min-width: 0; }
+  .table-card.curated { border-left-color: var(--curated); }
+  .table-card.undocumented { opacity: .8; }
+  .table-card h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600;
+    font-family: var(--mono);
+    word-break: break-all; overflow-wrap: anywhere;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .table-card .fqn { color: var(--g500); font-size: 11px; font-family: var(--mono);
+    word-break: break-all; overflow-wrap: anywhere; display: block;
+    margin-bottom: 8px; }
+  .table-card .body { font-size: 13px; color: var(--g700);
+    word-break: break-word; overflow-wrap: anywhere; }
+  .table-card .meta { color: var(--g500); font-size: 11px; margin-top: 6px;
+    word-break: break-word; overflow-wrap: anywhere; }
+  .table-card .meta code { background: var(--g100); padding: 1px 5px; border-radius: 3px;
+    font-size: 10px; }
+  .table-card details { margin-top: 10px; }
+  .table-card summary { cursor: pointer; color: var(--clay-d); font-size: 12px;
+    font-weight: 500; padding: 4px 0; }
+  table.cols { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px;
+    table-layout: fixed; }
+  table.cols th, table.cols td { padding: 5px 6px; border-bottom: 1px solid var(--g200);
+    text-align: left; vertical-align: top;
+    word-break: break-word; overflow-wrap: anywhere; }
+  table.cols th { color: var(--g500); font-weight: 500; font-family: var(--mono);
+    font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+  table.cols code { background: var(--g100); padding: 1px 4px; border-radius: 3px; }
+  .pii { color: var(--pii); }
+  .nodoc { color: var(--g500); font-style: italic; margin-top: 10px; font-size: 12px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .domain-bubble, .table-bubble, .edge { animation: none !important; transition: none !important; }
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    #canvas { height: 60vh; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="crumbs"><a href="../index.html">← VN AI Wiki</a> · <a href="../00_SEMANTIC_WALKTHROUGH.html" title="Semantic model walkthrough — what this page is and how to read it">📖 Walkthrough</a></div>
+  <h1>🗺️ Semantic Model</h1>
+  <div class="search-wrap">
+    <input id="search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search domains, tables, columns…"
+           aria-label="Search domains, tables, and columns"
+           aria-controls="search-results" aria-expanded="false">
+    <span class="search-kbd">/</span>
+    <div id="search-results" role="listbox" aria-label="Search results"></div>
+  </div>
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--raw)"></span>Raw (source)</span>
+    <span><span class="swatch" style="background:var(--curated)"></span>Curated (team-owned)</span>
+    <span id="meta-info"></span>
+    <div class="view-toggle" role="tablist" aria-label="View mode">
+      <button id="vt-domain" type="button" role="tab" aria-selected="true" class="active" title="Domain map — hand-positioned bubbles with ringed tables">🌐 Domain map</button>
+      <button id="vt-table"  type="button" role="tab" aria-selected="false" title="Table model — every table laid out as a card grid">🧱 Table model</button>
+    </div>
+    <button id="reset-layout" type="button" title="Clear any drag nudges saved in this browser. The baked layout is unchanged.">↺ Reset layout</button>
+  </div>
+</header>
+<main>
+  <div id="canvas">
+    <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="solo-controls" role="group" aria-label="Solo focus controls">
+      <button id="solo-back" type="button" class="solo-chip" title="Back to all domains (Esc)">← All domains</button>
+      <span id="solo-name" class="solo-chip solo-chip-name"></span>
+    </div>
+    <div class="zoom-toolbar" id="zoom-toolbar" role="toolbar" aria-label="Zoom">
+      <button id="zoom-out"  type="button" title="Zoom out (− or scroll down)" aria-label="Zoom out">−</button>
+      <span class="zoom-readout" id="zoom-readout">100%</span>
+      <button id="zoom-in"   type="button" title="Zoom in (+ or scroll up)" aria-label="Zoom in">+</button>
+      <button id="zoom-fit"  type="button" title="Fit to view (0)" aria-label="Fit to view">⊡</button>
+    </div>
+    <div id="table-model" aria-hidden="true">
+      <div class="tm-inner" id="tm-inner"></div>
+    </div>
+  </div>
+  <aside id="side">
+    <div id="welcome">
+      <h2>Welcome 👋</h2>
+      <p class="desc">Click a domain bubble to expand its tables and view the data dictionary.</p>
+      <p class="desc"><b>Tip:</b> drag a domain to nudge it for clarity — saved per-browser, the source layout is untouched.</p>
+      <p class="desc"><b>Reading the map:</b></p>
+      <ul class="desc">
+        <li>Big bubbles are <b>subject-area domains</b> (Policy, Customer, …).</li>
+        <li>Small satellite bubbles are <b>physical tables</b>. Solid border = raw source; dashed clay = curated/team-owned.</li>
+        <li>Edges show <b>relationships</b> (FKs, lineage). Hover an edge to see the join predicate.</li>
+        <li>Each table shows <b>which handovers buckets read/write it</b> — click a bucket chip to jump to its card in the main wiki.</li>
+      </ul>
+    </div>
+    <div id="domain-view" hidden></div>
+  </aside>
+</main>
+
+<script id="payload" type="application/json">
+{
+  "schema_version": 2,
+  "meta": {
+    "suggestion_suppressions": "[]",
+    "solo_offsets": "{}"
+  },
+  "domains": [
+    {
+      "id": "CUSTOMER",
+      "name": "Customer",
+      "description": "Customer master data and derived 360° / scoring tables.",
+      "x": 25.0,
+      "y": 35.0,
+      "radius": 110,
+      "color": "#4F46E5",
+      "icon": "👤"
+    },
+    {
+      "id": "PRODUCT",
+      "name": "Product",
+      "description": "Product catalogue, categories, pricing.",
+      "x": 75.0,
+      "y": 35.0,
+      "radius": 90,
+      "color": "#059669",
+      "icon": "📦"
+    },
+    {
+      "id": "ORDER",
+      "name": "Order",
+      "description": "Transactional orders and line items.",
+      "x": 50.0,
+      "y": 65.0,
+      "radius": 100,
+      "color": "#DC2626",
+      "icon": "🛒"
+    },
+    {
+      "id": "MARKETING",
+      "name": "Marketing",
+      "description": "Outbound campaigns and engagement events.",
+      "x": 25.0,
+      "y": 82.0,
+      "radius": 85,
+      "color": "#D97706",
+      "icon": "📣"
+    }
+  ],
+  "tables": [
+    {
+      "fqn": "raw_catalog.ops.customers",
+      "domain_id": "CUSTOMER",
+      "short_name": "customers",
+      "description": "Customer master — one row per customer_id.",
+      "grain": "1 row per customer_id",
+      "partition_col": "",
+      "source_system": "OPS",
+      "layer": "raw",
+      "share": true,
+      "notes": "",
+      "render": true,
+      "written_by": [],
+      "read_by": [
+        "MOD-2026-01",
+        "PRJ-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "customer_id",
+          "type": "STRING",
+          "description": "Primary key.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "email",
+          "type": "STRING",
+          "description": "Contact email.",
+          "domain_values": "",
+          "nullable": true,
+          "pii": true,
+          "notes": ""
+        },
+        {
+          "column": "signup_date",
+          "type": "DATE",
+          "description": "First-touch acquisition date.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "country",
+          "type": "STRING",
+          "description": "ISO country code.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "age_band",
+          "type": "STRING",
+          "description": "Banded age — 18-24, 25-34, …",
+          "domain_values": "18-24, 25-34, 35-44, 45-54, 55-64, 65+",
+          "nullable": true,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "curated_catalog.analytics.customer_360",
+      "domain_id": "CUSTOMER",
+      "short_name": "customer_360",
+      "description": "Wide customer feature table — lifetime value, order count, segment.",
+      "grain": "1 row per customer_id",
+      "partition_col": "",
+      "source_system": "Analytics",
+      "layer": "curated",
+      "share": true,
+      "notes": "Refreshed daily by PRJ-2026-01.",
+      "render": true,
+      "written_by": [
+        "PRJ-2026-01"
+      ],
+      "read_by": [
+        "MOD-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "customer_id",
+          "type": "STRING",
+          "description": "Foreign key to customers.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "lifetime_value",
+          "type": "DECIMAL(12,2)",
+          "description": "Sum of order totals, all-time.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "order_count",
+          "type": "INT",
+          "description": "Total orders placed.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "last_order_date",
+          "type": "DATE",
+          "description": "Most-recent order date.",
+          "domain_values": "",
+          "nullable": true,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "segment",
+          "type": "STRING",
+          "description": "Behavioural segment.",
+          "domain_values": "VIP, Loyal, Casual, At-Risk, Lapsed",
+          "nullable": true,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "curated_catalog.analytics.customer_churn_score",
+      "domain_id": "CUSTOMER",
+      "short_name": "customer_churn_score",
+      "description": "Per-customer churn propensity score from the active model.",
+      "grain": "1 row per customer_id per scoring date",
+      "partition_col": "score_date",
+      "source_system": "Analytics",
+      "layer": "curated",
+      "share": true,
+      "notes": "Refreshed weekly by MOD-2026-01.",
+      "render": true,
+      "written_by": [
+        "MOD-2026-01"
+      ],
+      "read_by": [
+        "CMP-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "customer_id",
+          "type": "STRING",
+          "description": "Foreign key to customers.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "score_date",
+          "type": "DATE",
+          "description": "Date the score was generated.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "churn_score",
+          "type": "DOUBLE",
+          "description": "Probability of churn in next 30 days (0–1).",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "model_version",
+          "type": "STRING",
+          "description": "Model artefact version that produced this score.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "raw_catalog.ops.products",
+      "domain_id": "PRODUCT",
+      "short_name": "products",
+      "description": "Product master.",
+      "grain": "1 row per product_id",
+      "partition_col": "",
+      "source_system": "OPS",
+      "layer": "raw",
+      "share": true,
+      "notes": "",
+      "render": true,
+      "written_by": [],
+      "read_by": [],
+      "columns": [
+        {
+          "column": "product_id",
+          "type": "STRING",
+          "description": "Primary key.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "product_name",
+          "type": "STRING",
+          "description": "Display name.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "category",
+          "type": "STRING",
+          "description": "Top-level category.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "price",
+          "type": "DECIMAL(10,2)",
+          "description": "List price.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "launch_date",
+          "type": "DATE",
+          "description": "First-available date.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "raw_catalog.ops.orders",
+      "domain_id": "ORDER",
+      "short_name": "orders",
+      "description": "Order header — one row per order_id.",
+      "grain": "1 row per order_id",
+      "partition_col": "order_date",
+      "source_system": "OPS",
+      "layer": "raw",
+      "share": true,
+      "notes": "",
+      "render": true,
+      "written_by": [],
+      "read_by": [
+        "PRJ-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "order_id",
+          "type": "STRING",
+          "description": "Primary key.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "customer_id",
+          "type": "STRING",
+          "description": "Foreign key to customers.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "order_date",
+          "type": "DATE",
+          "description": "Order placement date.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "channel",
+          "type": "STRING",
+          "description": "Acquisition channel.",
+          "domain_values": "Web, Mobile, Store, Partner",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "total_amount",
+          "type": "DECIMAL(10,2)",
+          "description": "Order grand total.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "raw_catalog.ops.order_items",
+      "domain_id": "ORDER",
+      "short_name": "order_items",
+      "description": "Order line items.",
+      "grain": "1 row per (order_id, product_id)",
+      "partition_col": "order_date",
+      "source_system": "OPS",
+      "layer": "raw",
+      "share": true,
+      "notes": "",
+      "render": true,
+      "written_by": [],
+      "read_by": [
+        "PRJ-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "order_id",
+          "type": "STRING",
+          "description": "Foreign key to orders.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "product_id",
+          "type": "STRING",
+          "description": "Foreign key to products.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "quantity",
+          "type": "INT",
+          "description": "Units ordered.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "unit_price",
+          "type": "DECIMAL(10,2)",
+          "description": "Price at order time.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    },
+    {
+      "fqn": "raw_catalog.marketing.campaign_sends",
+      "domain_id": "MARKETING",
+      "short_name": "campaign_sends",
+      "description": "Per-send outbound campaign log (email + push).",
+      "grain": "1 row per send_id",
+      "partition_col": "send_date",
+      "source_system": "Marketing Cloud",
+      "layer": "raw",
+      "share": true,
+      "notes": "",
+      "render": true,
+      "written_by": [],
+      "read_by": [
+        "CMP-2026-01"
+      ],
+      "columns": [
+        {
+          "column": "send_id",
+          "type": "STRING",
+          "description": "Primary key.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "customer_id",
+          "type": "STRING",
+          "description": "Foreign key to customers.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "campaign_code",
+          "type": "STRING",
+          "description": "Campaign identifier.",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "send_date",
+          "type": "DATE",
+          "description": "Send timestamp (date-truncated).",
+          "domain_values": "",
+          "nullable": false,
+          "pii": false,
+          "notes": ""
+        },
+        {
+          "column": "opened",
+          "type": "BOOLEAN",
+          "description": "Did the recipient open?",
+          "domain_values": "",
+          "nullable": true,
+          "pii": false,
+          "notes": ""
+        }
+      ],
+      "documented": true
+    }
+  ],
+  "relationships": [
+    {
+      "from": "ORDER",
+      "to": "CUSTOMER",
+      "kind": "domain_link",
+      "cardinality": "n:1",
+      "via": "orders.customer_id = customers.customer_id",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    },
+    {
+      "from": "ORDER",
+      "to": "PRODUCT",
+      "kind": "domain_link",
+      "cardinality": "n:n",
+      "via": "order_items joins orders to products",
+      "notes": "",
+      "from_column": "product_id",
+      "to_column": "product_id"
+    },
+    {
+      "from": "MARKETING",
+      "to": "CUSTOMER",
+      "kind": "domain_link",
+      "cardinality": "n:1",
+      "via": "campaign_sends.customer_id = customers.customer_id",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    },
+    {
+      "from": "raw_catalog.ops.orders",
+      "to": "raw_catalog.ops.customers",
+      "kind": "fk",
+      "cardinality": "n:1",
+      "via": "orders.customer_id → customers.customer_id",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    },
+    {
+      "from": "raw_catalog.ops.order_items",
+      "to": "raw_catalog.ops.orders",
+      "kind": "fk",
+      "cardinality": "n:1",
+      "via": "order_items.order_id → orders.order_id",
+      "notes": "",
+      "from_column": "order_id",
+      "to_column": "order_id"
+    },
+    {
+      "from": "raw_catalog.ops.order_items",
+      "to": "raw_catalog.ops.products",
+      "kind": "fk",
+      "cardinality": "n:1",
+      "via": "order_items.product_id → products.product_id",
+      "notes": "",
+      "from_column": "product_id",
+      "to_column": "product_id"
+    },
+    {
+      "from": "raw_catalog.marketing.campaign_sends",
+      "to": "raw_catalog.ops.customers",
+      "kind": "fk",
+      "cardinality": "n:1",
+      "via": "campaign_sends.customer_id → customers.customer_id",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    },
+    {
+      "from": "curated_catalog.analytics.customer_360",
+      "to": "raw_catalog.ops.customers",
+      "kind": "derived_from",
+      "cardinality": "1:1",
+      "via": "customer_360 is aggregated per customer",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    },
+    {
+      "from": "curated_catalog.analytics.customer_churn_score",
+      "to": "curated_catalog.analytics.customer_360",
+      "kind": "derived_from",
+      "cardinality": "1:1",
+      "via": "scoring model consumes customer_360 features",
+      "notes": "",
+      "from_column": "customer_id",
+      "to_column": "customer_id"
+    }
+  ]
+}
+</script>
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('payload').textContent);
+  document.getElementById('meta-info').textContent =
+    (data.meta && data.meta.last_updated ? 'Updated ' + data.meta.last_updated : '');
+
+  const svg = document.getElementById('svg');
+  const W = 1000, H = 700;
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = (n, a={}) => { const e = document.createElementNS(ns, n);
+    for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  const domById = Object.fromEntries(data.domains.map(d => [d.id, d]));
+  const tablesByDom = {};
+  for (const t of data.tables) {
+    if (!t.render) continue;
+    (tablesByDom[t.domain_id] ||= []).push(t);
+  }
+  const tblByFqn = Object.fromEntries(data.tables.map(t => [t.fqn, t]));
+  const domCoord = d => ({ cx: d.x/100 * W, cy: d.y/100 * H });
+
+  // ─── Solo (focus) mode state ─────────────────────────────────────────
+  // soloFocusId === null  → overview (current default).
+  // soloFocusId === '<id>' → that domain is centred; others are ghost pucks.
+  // Per-table solo offsets are read from meta.solo_offsets (a JSON string
+  // populated by the Semantic Editor) — we honour them but cannot write back.
+  const GHOST_PUCK_INSET = 110;
+  let soloFocusId = null;
+  let metaSoloOffsets = {};
+  try {
+    const raw = (data.meta && data.meta.solo_offsets) || '';
+    if (raw) metaSoloOffsets = JSON.parse(raw) || {};
+  } catch (_) { metaSoloOffsets = {}; }
+  function soloOffsetOf(id) {
+    // Translation (dx,dy) to add to a domain's natural position when in Solo.
+    if (!soloFocusId) return { dx: 0, dy: 0 };
+    const d = domById[id]; if (!d) return { dx: 0, dy: 0 };
+    const nat = domCoord(d);
+    if (id === soloFocusId) {
+      // Pull the focused puck to the canvas centre.
+      return { dx: W/2 - nat.cx, dy: H/2 - nat.cy };
+    }
+    // Ghost pucks: project the other domain along the ray from canvas centre
+    // through its natural position onto an inset rectangle. Preserves the
+    // model's spatial intuition (north stays north, east stays east).
+    const focusNat = domCoord(domById[soloFocusId]);
+    let vx = nat.cx - focusNat.cx, vy = nat.cy - focusNat.cy;
+    if (vx === 0 && vy === 0) { vx = 1; vy = 0; }
+    const halfW = W/2 - GHOST_PUCK_INSET;
+    const halfH = H/2 - GHOST_PUCK_INSET;
+    const sx = halfW / Math.abs(vx || 1e-9);
+    const sy = halfH / Math.abs(vy || 1e-9);
+    const t = Math.min(sx, sy);
+    const targetX = W/2 + vx * t;
+    const targetY = H/2 + vy * t;
+    return { dx: targetX - nat.cx, dy: targetY - nat.cy };
+  }
+
+  // Edges layer first (drawn below bubbles)
+  const gEdges = el('g', {id:'edges'});
+  svg.appendChild(gEdges);
+  for (const r of data.relationships) {
+    let a, b, fromDom, toDom;
+    if (domById[r.from] && domById[r.to]) {
+      a = domCoord(domById[r.from]); b = domCoord(domById[r.to]);
+      fromDom = r.from; toDom = r.to;
+    } else if (tblByFqn[r.from] && tblByFqn[r.to]) {
+      fromDom = tblByFqn[r.from].domain_id;
+      toDom   = tblByFqn[r.to].domain_id;
+      a = domCoord(domById[fromDom]);
+      b = domCoord(domById[toDom]);
+      if (!a || !b || a===b) continue;
+    } else continue;
+    const line = el('line', {x1:a.cx, y1:a.cy, x2:b.cx, y2:b.cy, class:'edge kind-'+r.kind});
+    line.dataset.from = r.from; line.dataset.to = r.to;
+    // Base coords + endpoint domains — used by the drag system to recompute
+    // (x1,y1,x2,y2) when a domain bubble is nudged.
+    line.dataset.fromDomain = fromDom; line.dataset.toDomain = toDom;
+    line.dataset.bx1 = a.cx; line.dataset.by1 = a.cy;
+    line.dataset.bx2 = b.cx; line.dataset.by2 = b.cy;
+    gEdges.appendChild(line);
+  }
+
+  // Satellites layer — separate so they overlay edges but render under domain bubbles.
+  const gSatellites = el('g', {id:'satellites'});
+  svg.appendChild(gSatellites);
+
+  // Domain bubbles layer (on top)
+  const gDomains = el('g', {id:'domains'});
+  svg.appendChild(gDomains);
+
+  for (const d of data.domains) {
+    const {cx, cy} = domCoord(d);
+    const r = d.radius || 80;
+
+    // Domain bubble
+    const g = el('g', {class: 'domain-bubble', 'data-id': d.id});
+    g.appendChild(el('circle', {cx, cy, r, class:'dom', stroke: d.color}));
+    if (d.icon) {
+      const ic = el('text', {x:cx, y:cy-6, class:'icon'}); ic.textContent = d.icon;
+      g.appendChild(ic);
+    }
+    const tName = el('text', {x:cx, y:cy+22, class:'label'}); tName.textContent = d.name;
+    g.appendChild(tName);
+    const tCount = el('text', {x:cx, y:cy+38, class:'count'});
+    tCount.textContent = (tablesByDom[d.id]||[]).length + ' tables';
+    g.appendChild(tCount);
+    g.addEventListener('click', (ev) => { ev.stopPropagation(); selectDomain(d.id); });
+    gDomains.appendChild(g);
+
+    // Satellites — outer <g> for SVG transform (position), inner <g> for CSS transform (scale anim)
+    const tables = tablesByDom[d.id] || [];
+    const ringR = r + 60;
+    const DENSE_THRESHOLD = 12;   // > this → render satellites as dots (always, overview + solo)
+    const isDense = tables.length > DENSE_THRESHOLD;
+    const wrap = el('g', {class: 'satellites-wrap' + (isDense ? ' dense' : ''),
+                          'data-domain': d.id, style:'pointer-events:none'});
+    tables.forEach((t, i) => {
+      const ang = (-Math.PI/2) + (i * 2 * Math.PI / Math.max(tables.length, 1));
+      const tx = cx + ringR * Math.cos(ang);
+      const ty = cy + ringR * Math.sin(ang);
+      const pos = el('g', {transform: `translate(${tx},${ty})`});  // position only
+      pos.dataset.baseTransform = `translate(${tx},${ty})`;
+      const tb  = el('g', {class: 'table-bubble' + (t.layer==='curated'?' curated':''),
+                           'data-fqn': t.fqn});                     // CSS scale anim
+      tb.appendChild(el('circle', {cx:0, cy:0, r:28, class:'tbl'}));
+      const fullName = t.short_name || t.fqn.split('.').pop();
+      const tip = el('title'); tip.textContent = fullName;
+      tb.appendChild(tip);
+      appendWrappedLabel(tb, fullName);
+      tb.addEventListener('click', (ev) => { ev.stopPropagation(); focusTable(t.fqn); });
+      pos.appendChild(tb);
+      wrap.appendChild(pos);
+    });
+    gSatellites.appendChild(wrap);
+  }
+
+  // ─── Domain drag (view-only nudges, persisted to localStorage) ─────
+  // Lets the reader shuffle overlapping domains apart for clarity. Does NOT
+  // touch semantic.json — the canonical layout is baked at build time.
+  const NUDGE_KEY = 'vn-aiwiki-domain-nudges-v1';
+  let nudges = {};
+  try {
+    const raw = JSON.parse(localStorage.getItem(NUDGE_KEY) || '{}');
+    for (const id in raw) if (domById[id] && raw[id] && typeof raw[id].dx === 'number' && typeof raw[id].dy === 'number') nudges[id] = raw[id];
+  } catch (_) { nudges = {}; }
+  function nudgeOf(id){ return nudges[id] || {dx:0, dy:0}; }
+  function updateResetVisibility(){
+    const btn = document.getElementById('reset-layout');
+    if (btn) btn.style.display = Object.keys(nudges).length ? 'inline-block' : 'none';
+  }
+  function persistNudges(){
+    try { localStorage.setItem(NUDGE_KEY, JSON.stringify(nudges)); } catch (_) {}
+    updateResetVisibility();
+  }
+  function applyDomainTransform(id){
+    const n = nudgeOf(id);
+    const s = soloOffsetOf(id);
+    // Domain bubbles use CSS vars so the translate composes with the
+    // breathe/hover/active scale transforms. Satellites have no such CSS
+    // animations and use the plain SVG transform attribute.
+    document.querySelectorAll(`.domain-bubble[data-id="${CSS.escape(id)}"]`).forEach(g => {
+      g.style.setProperty('--ndx', n.dx + 'px');
+      g.style.setProperty('--ndy', n.dy + 'px');
+      g.style.setProperty('--sdx', s.dx + 'px');
+      g.style.setProperty('--sdy', s.dy + 'px');
+    });
+    document.querySelectorAll(`.satellites-wrap[data-domain="${CSS.escape(id)}"]`).forEach(g => g.setAttribute('transform', `translate(${n.dx + s.dx},${n.dy + s.dy})`));
+    // Per-table solo offsets (from meta.solo_offsets, written by the editor).
+    // Applied only to the soloed domain; other domains always reset to base.
+    (tablesByDom[id] || []).forEach(t => {
+      const tb = document.querySelector(`.satellites-wrap[data-domain="${CSS.escape(id)}"] .table-bubble[data-fqn="${CSS.escape(t.fqn)}"]`);
+      if (!tb) return;
+      const wrapper = tb.parentNode;
+      const base = wrapper && wrapper.dataset.baseTransform;
+      if (!base) return;
+      const off = (soloFocusId === id) ? metaSoloOffsets[id + '\u0001' + t.fqn] : null;
+      wrapper.setAttribute('transform', off ? `${base} translate(${off.x||0},${off.y||0})` : base);
+    });
+  }
+  function applyEdgeOffsetsFor(idSet){
+    document.querySelectorAll('.edge').forEach(line => {
+      const fd = line.dataset.fromDomain, td = line.dataset.toDomain;
+      if (idSet && !(idSet.has(fd) || idSet.has(td))) return;
+      const fn = nudgeOf(fd), tn = nudgeOf(td);
+      const sfn = soloOffsetOf(fd), stn = soloOffsetOf(td);
+      line.setAttribute('x1', (+line.dataset.bx1) + fn.dx + sfn.dx);
+      line.setAttribute('y1', (+line.dataset.by1) + fn.dy + sfn.dy);
+      line.setAttribute('x2', (+line.dataset.bx2) + tn.dx + stn.dx);
+      line.setAttribute('y2', (+line.dataset.by2) + tn.dy + stn.dy);
+      // Visibility filter: in Solo, hide edges that don't touch the focused domain.
+      const hidden = !!soloFocusId && fd !== soloFocusId && td !== soloFocusId;
+      line.classList.toggle('solo-hidden', hidden);
+    });
+  }
+  function applyAllNudges(){
+    Object.keys(nudges).forEach(applyDomainTransform);
+    applyEdgeOffsetsFor(null);
+    updateResetVisibility();
+  }
+  applyAllNudges();
+
+  let drag = null;
+  const DRAG_THRESHOLD = 4;
+  function svgPointFromEvent(e){
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const ctm = svg.getScreenCTM();
+    return ctm ? pt.matrixTransform(ctm.inverse()) : {x: e.clientX, y: e.clientY};
+  }
+  svg.addEventListener('pointerdown', (e) => {
+    const bubble = e.target.closest && e.target.closest('.domain-bubble');
+    if (!bubble) return;
+    if (e.button !== 0) return;
+    const id = bubble.dataset.id;
+    const n = nudgeOf(id);
+    const p = svgPointFromEvent(e);
+    drag = {
+      id, bubble,
+      startUx: p.x, startUy: p.y,
+      baseDx: n.dx, baseDy: n.dy,
+      idSet: new Set([id]),
+      moved: false,
+    };
+    try { bubble.setPointerCapture(e.pointerId); } catch (_) {}
+    bubble.classList.add('dragging');
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const p = svgPointFromEvent(e);
+    const dx = p.x - drag.startUx;
+    const dy = p.y - drag.startUy;
+    if (!drag.moved){
+      const rect = svg.getBoundingClientRect();
+      const sx = rect.width  / svg.viewBox.baseVal.width;
+      const sy = rect.height / svg.viewBox.baseVal.height;
+      if (Math.hypot(dx*sx, dy*sy) < DRAG_THRESHOLD) return;
+      drag.moved = true;
+    }
+    nudges[drag.id] = {dx: drag.baseDx + dx, dy: drag.baseDy + dy};
+    applyDomainTransform(drag.id);
+    applyEdgeOffsetsFor(drag.idSet);
+  });
+  function endDrag(e){
+    if (!drag) return;
+    const wasMoved = drag.moved;
+    drag.bubble.classList.remove('dragging');
+    try { drag.bubble.releasePointerCapture(e.pointerId); } catch (_) {}
+    drag = null;
+    if (wasMoved){
+      persistNudges();
+      // Swallow the click that follows pointerup so selectDomain doesn't fire.
+      const suppress = (ev) => { ev.stopPropagation(); ev.preventDefault(); svg.removeEventListener('click', suppress, true); };
+      svg.addEventListener('click', suppress, true);
+    }
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+
+  function resetLayout(){
+    nudges = {};
+    try { localStorage.removeItem(NUDGE_KEY); } catch (_) {}
+    // Re-apply per-domain transforms; honours any active Solo state.
+    data.domains.forEach(d => applyDomainTransform(d.id));
+    applyEdgeOffsetsFor(null);
+    updateResetVisibility();
+  }
+  const resetBtn = document.getElementById('reset-layout');
+  if (resetBtn) resetBtn.addEventListener('click', resetLayout);
+  updateResetVisibility();
+
+  /* ─── Pan + zoom (Domain map mode) ──────────────────────────────────
+   * Wraps every existing top-level <g> inside <svg> in a single viewport
+   * <g id="viewport"> and applies a matrix transform. Wheel zooms toward
+   * the cursor; drag on empty canvas pans. Click handlers on bubbles still
+   * fire because the viewport <g> doesn't intercept pointer events. */
+  const canvasEl = document.getElementById('canvas');
+  let suppressNextClick = false;
+  const viewport = el('g', {id: 'viewport'});
+  while (svg.firstChild) viewport.appendChild(svg.firstChild);
+  svg.appendChild(viewport);
+  const VIEW_VB = { w: 1000, h: 700 };  // matches the SVG viewBox
+  const Z_MIN = 0.4, Z_MAX = 5;
+  let zoom = 1, panX = 0, panY = 0;
+  const readout = document.getElementById('zoom-readout');
+  function applyViewport() {
+    viewport.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+    if (readout) readout.textContent = Math.round(zoom * 100) + '%';
+  }
+  function clientToVB(clientX, clientY) {
+    const r = svg.getBoundingClientRect();
+    // CSS pixels → viewBox units (preserveAspectRatio=xMidYMid meet)
+    const scale = Math.min(r.width / VIEW_VB.w, r.height / VIEW_VB.h);
+    const offX = (r.width  - VIEW_VB.w * scale) / 2;
+    const offY = (r.height - VIEW_VB.h * scale) / 2;
+    return { x: (clientX - r.left - offX) / scale,
+             y: (clientY - r.top  - offY) / scale };
+  }
+  function zoomAt(clientX, clientY, factor) {
+    const z2 = Math.max(Z_MIN, Math.min(Z_MAX, zoom * factor));
+    if (z2 === zoom) return;
+    const p = clientToVB(clientX, clientY);
+    // Keep the point under the cursor stable: pan' = p - (p - pan) * z2/z
+    panX = p.x - (p.x - panX) * (z2 / zoom);
+    panY = p.y - (p.y - panY) * (z2 / zoom);
+    zoom = z2;
+    applyViewport();
+  }
+  function fitView(){ zoom = 1; panX = 0; panY = 0; applyViewport(); }
+  applyViewport();
+  document.getElementById('zoom-in') .addEventListener('click', () => {
+    const r = svg.getBoundingClientRect();
+    zoomAt(r.left + r.width/2, r.top + r.height/2, 1.25);
+  });
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    const r = svg.getBoundingClientRect();
+    zoomAt(r.left + r.width/2, r.top + r.height/2, 1/1.25);
+  });
+  document.getElementById('zoom-fit').addEventListener('click', fitView);
+  svg.addEventListener('wheel', (e) => {
+    if (document.body.classList.contains('view-table')) return;
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1/1.12);
+  }, { passive: false });
+
+  // Pan when dragging on empty canvas (not on a domain bubble or satellite).
+  let panning = null;
+  svg.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    if (e.target.closest('.domain-bubble') || e.target.closest('.table-bubble')) return;
+    panning = { sx: e.clientX, sy: e.clientY, px: panX, py: panY, moved: false };
+    svg.setPointerCapture(e.pointerId);
+    canvasEl.classList.add('is-panning');
+  });
+  svg.addEventListener('pointermove', (e) => {
+    if (!panning) return;
+    const r = svg.getBoundingClientRect();
+    const scale = Math.min(r.width / VIEW_VB.w, r.height / VIEW_VB.h);
+    const dx = (e.clientX - panning.sx) / scale;
+    const dy = (e.clientY - panning.sy) / scale;
+    if (Math.abs(dx) + Math.abs(dy) > 2) panning.moved = true;
+    panX = panning.px + dx;
+    panY = panning.py + dy;
+    applyViewport();
+  });
+  function endPan(e){
+    if (!panning) return;
+    try { svg.releasePointerCapture(e.pointerId); } catch(_) {}
+    const moved = panning.moved;
+    panning = null;
+    canvasEl.classList.remove('is-panning');
+    // Suppress the click that fires after a real drag (which otherwise dismisses the selection).
+    if (moved) { suppressNextClick = true; setTimeout(() => suppressNextClick = false, 0); }
+  }
+  svg.addEventListener('pointerup',    endPan);
+  svg.addEventListener('pointercancel', endPan);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea')) return;
+    if (e.key === '+' || e.key === '=') { e.preventDefault();
+      const r = svg.getBoundingClientRect(); zoomAt(r.left+r.width/2, r.top+r.height/2, 1.25); }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault();
+      const r = svg.getBoundingClientRect(); zoomAt(r.left+r.width/2, r.top+r.height/2, 1/1.25); }
+    else if (e.key === '0') { e.preventDefault(); fitView(); }
+  });
+
+  /* ─── View toggle (Domain map / Table model) ──────────────────────── */
+  let tableModelBuilt = false;
+  function buildTableModel() {
+    const inner = document.getElementById('tm-inner');
+    let html = '';
+    for (const d of data.domains) {
+      const tables = tablesByDom[d.id] || [];
+      if (!tables.length) continue;
+      html += `<section class="tm-domain" data-domain="${escapeAttr(d.id)}">
+        <div class="tm-domain-head">
+          <span class="swatch" style="background:${escapeAttr(d.color || '#999')}"></span>
+          <span class="icn">${escapeHtml(d.icon || '')}</span>
+          <span>${escapeHtml(d.name)}</span>
+          <span style="color:var(--g500);font-weight:400">· ${tables.length} tables</span>
+        </div>
+        <div class="tm-grid">`;
+      for (const t of tables) {
+        html += `<div class="table-card ${t.layer} ${t.documented?'':'undocumented'}" data-tm-fqn="${escapeAttr(t.fqn)}">
+          <h3>${escapeHtml(t.short_name)} <span class="chip layer-${t.layer}">${t.layer}</span></h3>
+          <code class="fqn">${escapeHtml(t.fqn)}</code>
+          <div class="body">${escapeHtml(t.description || '')}</div>
+          ${t.columns && t.columns.length ? `<details><summary>📖 ${t.columns.length} columns</summary>
+            <table class="cols">
+              <colgroup><col style="width:38%"><col style="width:22%"><col style="width:40%"></colgroup>
+              <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>${t.columns.map(c => `<tr data-tm-col="${escapeAttr(t.fqn + '::' + c.column)}">
+                <td><code>${escapeHtml(c.column)}</code>${c.pii?' <span class="pii">🔒</span>':''}</td>
+                <td>${escapeHtml(c.type || '')}</td>
+                <td>${escapeHtml(c.description || '')}</td>
+              </tr>`).join('')}</tbody>
+            </table></details>` : '<div class="nodoc">📝 Not yet documented.</div>'}
+        </div>`;
+      }
+      html += `</div></section>`;
+    }
+    if (!html) html = '<div class="tm-empty">No tables in this model yet.</div>';
+    inner.innerHTML = html;
+    tableModelBuilt = true;
+  }
+  let tmZoom = 1;
+  function applyTmZoom(){ document.getElementById('tm-inner').style.transform = `scale(${tmZoom})`;
+    if (document.body.classList.contains('view-table')) readout.textContent = Math.round(tmZoom * 100) + '%'; }
+  function setView(mode) {
+    if (mode === 'table' && !tableModelBuilt) buildTableModel();
+    if (mode === 'table') exitSolo();
+    document.body.classList.toggle('view-table', mode === 'table');
+    document.getElementById('vt-domain').classList.toggle('active', mode === 'domain');
+    document.getElementById('vt-table' ).classList.toggle('active', mode === 'table');
+    document.getElementById('vt-domain').setAttribute('aria-selected', String(mode === 'domain'));
+    document.getElementById('vt-table' ).setAttribute('aria-selected', String(mode === 'table'));
+    if (mode === 'table') applyTmZoom(); else applyViewport();
+  }
+  document.getElementById('vt-domain').addEventListener('click', () => setView('domain'));
+  document.getElementById('vt-table' ).addEventListener('click', () => setView('table'));
+  // Zoom buttons also drive the Table model when active.
+  const _origZoomIn  = document.getElementById('zoom-in');
+  const _origZoomOut = document.getElementById('zoom-out');
+  const _origZoomFit = document.getElementById('zoom-fit');
+  _origZoomIn.addEventListener('click', () => {
+    if (!document.body.classList.contains('view-table')) return;
+    tmZoom = Math.min(2.5, tmZoom * 1.15); applyTmZoom();
+  });
+  _origZoomOut.addEventListener('click', () => {
+    if (!document.body.classList.contains('view-table')) return;
+    tmZoom = Math.max(0.5, tmZoom / 1.15); applyTmZoom();
+  });
+  _origZoomFit.addEventListener('click', () => {
+    if (!document.body.classList.contains('view-table')) return;
+    tmZoom = 1; applyTmZoom();
+  });
+
+  /* ─── Search highlight on satellite (Domain map) ──────────────────── */
+  function clearSearchHighlight() {
+    document.querySelectorAll('.table-bubble.search-hit, .table-bubble.search-dim')
+      .forEach(b => b.classList.remove('search-hit', 'search-dim'));
+    document.querySelectorAll('#tm-inner .table-card.flash')
+      .forEach(c => c.classList.remove('flash'));
+  }
+  function highlightSatelliteByFqn(fqn) {
+    const target = document.querySelector(`.table-bubble[data-fqn="${CSS.escape(fqn)}"]`);
+    if (!target) return;
+    const wrap = target.closest('.satellites-wrap');
+    if (!wrap) { target.classList.add('search-hit'); return; }
+    // Apply regardless of .visible — selectDomain reveals satellites with a
+    // staggered setTimeout (up to ~35ms × n) so we'd otherwise race the reveal.
+    wrap.querySelectorAll('.table-bubble').forEach(b => {
+      if (b === target) b.classList.add('search-hit');
+      else b.classList.add('search-dim');
+    });
+  }
+  function highlightTableModelCard(fqn) {
+    const c = document.querySelector(`#tm-inner [data-tm-fqn="${CSS.escape(fqn)}"]`);
+    if (!c) return;
+    c.classList.add('flash');
+    c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => c.classList.remove('flash'), 2500);
+  }
+
+
+  function enterSolo(id) {
+    if (!domById[id]) return;
+    soloFocusId = id;
+    document.body.classList.add('view-solo');
+    document.querySelectorAll('.domain-bubble').forEach(b => {
+      const same = b.dataset.id === id;
+      b.classList.toggle('is-focused', same);
+      b.classList.toggle('is-ghost', !same);
+    });
+    const nameEl = document.getElementById('solo-name');
+    if (nameEl) nameEl.textContent = (domById[id].icon || '') + ' ' + domById[id].name;
+    // Recompute all transforms + edge endpoints/visibility under solo.
+    data.domains.forEach(d => applyDomainTransform(d.id));
+    applyEdgeOffsetsFor(null);
+  }
+
+  function exitSolo() {
+    if (!soloFocusId) return;
+    soloFocusId = null;
+    document.body.classList.remove('view-solo');
+    document.querySelectorAll('.domain-bubble').forEach(b => {
+      b.classList.remove('is-focused', 'is-ghost');
+    });
+    // Restore baseline transforms + show all edges.
+    data.domains.forEach(d => applyDomainTransform(d.id));
+    applyEdgeOffsetsFor(null);
+  }
+
+  function selectDomain(id) {
+    clearSearchHighlight();
+    if (soloFocusId !== id) enterSolo(id);
+    document.querySelectorAll('.domain-bubble').forEach(b =>
+      b.classList.toggle('active', b.dataset.id === id));
+    document.querySelectorAll('.satellites-wrap').forEach(g => {
+      const on = g.dataset.domain === id;
+      g.style.pointerEvents = on ? 'auto' : 'none';
+      g.querySelectorAll('.table-bubble').forEach((tb, i) => {
+        if (on) setTimeout(() => tb.classList.add('visible'), i * 35);
+        else tb.classList.remove('visible');
+      });
+    });
+    document.querySelectorAll('.edge').forEach(l => {
+      l.classList.toggle('hi', l.dataset.from === id || l.dataset.to === id);
+    });
+    renderSide(id);
+  }
+
+  function focusTable(fqn) {
+    // Scroll the side panel to that table's card
+    const card = document.querySelector(`[data-fqn-card="${CSS.escape(fqn)}"]`);
+    if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function renderSide(domainId) {
+    const d = domById[domainId];
+    const tables = tablesByDom[domainId] || [];
+    document.getElementById('welcome').hidden = true;
+    const v = document.getElementById('domain-view');
+    v.hidden = false;
+    const bucketChip = b =>
+      `<span class="chip bucket"><a href="../index.html#b-${b}">${b}</a></span>`;
+    const layerChip = l => `<span class="chip layer-${l}">${l}</span>`;
+    v.innerHTML = `
+      <h2>${d.icon||''} ${escapeHtml(d.name)}</h2>
+      <p class="desc">${escapeHtml(d.description)}</p>
+      ${tables.length ? tables.map(t => `
+        <div class="table-card ${t.layer} ${t.documented?'':'undocumented'}" data-fqn-card="${escapeAttr(t.fqn)}">
+          <h3>${escapeHtml(t.short_name)} ${layerChip(t.layer)}</h3>
+          <code class="fqn">${escapeHtml(t.fqn)}</code>
+          <div class="body">${escapeHtml(t.description)}</div>
+          <div class="meta">
+            ${t.grain ? '<b>Grain:</b> '+escapeHtml(t.grain) : ''}
+            ${t.partition_col ? ' · <b>Partition:</b> <code>'+escapeHtml(t.partition_col)+'</code>' : ''}
+            ${t.source_system ? ' · <b>Source:</b> '+escapeHtml(t.source_system) : ''}
+          </div>
+          ${t.written_by.length || t.read_by.length ? `<div class="meta" style="margin-top:8px">
+            ${t.written_by.length ? '<b>Written by:</b> '+t.written_by.map(bucketChip).join('') : ''}
+            ${t.read_by.length ? (t.written_by.length?'<br>':'')+'<b>Read by:</b> '+t.read_by.map(bucketChip).join('') : ''}
+          </div>` : ''}
+          ${t.columns.length ? `<details><summary>📖 Data dictionary (${t.columns.length} columns)</summary>
+            <table class="cols">
+              <colgroup><col style="width:32%"><col style="width:18%"><col style="width:50%"></colgroup>
+              <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>${t.columns.map(c => `
+                <tr data-col-key="${escapeAttr(t.fqn + '::' + c.column)}">
+                  <td><code>${escapeHtml(c.column)}</code>${c.pii?' <span class="pii" title="PII">🔒</span>':''}</td>
+                  <td>${escapeHtml(c.type)}</td>
+                  <td>${escapeHtml(c.description)}${c.domain_values?'<br><span class="meta">Values: '+escapeHtml(c.domain_values)+'</span>':''}</td>
+                </tr>`).join('')}</tbody>
+            </table>
+          </details>` : `<div class="nodoc">📝 Data dictionary not yet documented.</div>`}
+        </div>
+      `).join('') : '<p class="empty">No tables in this domain yet.</p>'}
+    `;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  svg.addEventListener('click', () => {
+    if (suppressNextClick) { suppressNextClick = false; return; }
+    clearSearchHighlight();
+    document.querySelectorAll('.domain-bubble').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.satellites-wrap').forEach(g => {
+      g.style.pointerEvents = 'none';
+      g.querySelectorAll('.table-bubble').forEach(tb => tb.classList.remove('visible'));
+    });
+    document.querySelectorAll('.edge').forEach(l => l.classList.remove('hi'));
+    document.getElementById('welcome').hidden = false;
+    document.getElementById('domain-view').hidden = true;
+    exitSolo();
+  });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') svg.dispatchEvent(new Event('click')); });
+  const soloBackBtn = document.getElementById('solo-back');
+  if (soloBackBtn) soloBackBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    svg.dispatchEvent(new Event('click'));
+  });
+  // Expose for headless smoke tests.
+  window.__wiki = { enterSolo, exitSolo };
+
+  /* ─── Satellite label wrap helper ───────────────────────────────────── */
+  /* Two-line wrap split on the underscore nearest to a 50/50 length split;
+     each line clipped to MAX_CHARS with an ellipsis. The full name lives in
+     the sibling <title> element (native browser tooltip). */
+  function appendWrappedLabel(parent, name) {
+    const MAX_CHARS = 17;
+    const clip = s => s.length > MAX_CHARS ? s.slice(0, MAX_CHARS - 1) + '…' : s;
+    if (name.length <= 14) {
+      const t = el('text', {x:0, y:3}); t.textContent = name;
+      parent.appendChild(t); return;
+    }
+    // Minimax split on '_': pick the underscore that minimizes max(left, right).
+    let bestIdx = -1, bestMax = Infinity;
+    for (let i = 0; i < name.length; i++) {
+      if (name[i] !== '_') continue;
+      const m = Math.max(i, name.length - i - 1);
+      if (m < bestMax) { bestMax = m; bestIdx = i; }
+    }
+    let line1, line2;
+    if (bestIdx >= 0) {
+      line1 = name.slice(0, bestIdx);
+      line2 = name.slice(bestIdx + 1);
+    } else {
+      const m = Math.ceil(name.length / 2);
+      line1 = name.slice(0, m); line2 = name.slice(m);
+    }
+    const t = el('text', {x:0, y:0});
+    const ts1 = el('tspan', {x:0, dy:'-0.1em'}); ts1.textContent = clip(line1);
+    const ts2 = el('tspan', {x:0, dy:'1.15em'}); ts2.textContent = clip(line2);
+    t.appendChild(ts1); t.appendChild(ts2);
+    parent.appendChild(t);
+  }
+
+  /* ─── Spotlight-style search omnibox ────────────────────────────────── */
+  /* Index: domains + table short_names + table fqns + columns. ~260 items.
+     Match: case-insensitive substring. Rank: exact > prefix > word-boundary
+     > substring; tiebreak by shorter-then-alpha. Results grouped by entity
+     type, capped 5 per group. */
+  const searchInput = document.getElementById('search');
+  const searchBox = document.getElementById('search-results');
+  const PER_GROUP_CAP = 5;
+
+  // Build the searchable index once.
+  const idx = { domain: [], table: [], column: [] };
+  for (const d of data.domains) {
+    idx.domain.push({ kind: 'domain', label: d.name, meta: d.description || '', id: d.id });
+  }
+  for (const t of data.tables) {
+    if (!t.render) continue;
+    // Table is searchable by both short_name and fqn (two index entries pointing to same target).
+    idx.table.push({ kind: 'table', label: t.short_name, meta: t.fqn, fqn: t.fqn, domainId: t.domain_id });
+    idx.table.push({ kind: 'table', label: t.fqn, meta: t.short_name, fqn: t.fqn, domainId: t.domain_id, _aliasFqn: true });
+    for (const c of (t.columns || [])) {
+      idx.column.push({ kind: 'column', label: c.column, meta: t.short_name, fqn: t.fqn, domainId: t.domain_id });
+    }
+  }
+
+  function score(label, q) {
+    // Lower is better. Negative = no match.
+    const L = label.toLowerCase(), Q = q.toLowerCase();
+    if (L === Q) return 0;
+    if (L.startsWith(Q)) return 1;
+    // Word-boundary: query starts at position right after a non-alnum char.
+    const wb = new RegExp('(^|[^a-z0-9])' + Q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (wb.test(L)) return 2;
+    if (L.includes(Q)) return 3;
+    return -1;
+  }
+
+  function rankGroup(items, q, opts={}) {
+    const dedup = new Set();
+    const scored = [];
+    for (const it of items) {
+      const s = score(it.label, q);
+      if (s < 0) continue;
+      // Collapse duplicate table entries (short_name + fqn alias point to same fqn) — keep best score.
+      const dedupKey = opts.dedupBy ? it[opts.dedupBy] : null;
+      if (dedupKey) {
+        if (dedup.has(dedupKey)) continue;
+        // Look ahead: prefer the non-alias entry if it scores equal-or-better.
+      }
+      scored.push({ it, s });
+    }
+    scored.sort((a, b) => {
+      if (a.s !== b.s) return a.s - b.s;
+      if (a.it.label.length !== b.it.label.length) return a.it.label.length - b.it.label.length;
+      return a.it.label.localeCompare(b.it.label);
+    });
+    const out = [];
+    for (const e of scored) {
+      const k = opts.dedupBy ? e.it[opts.dedupBy] : null;
+      if (k) { if (dedup.has(k)) continue; dedup.add(k); }
+      out.push(e.it);
+    }
+    return out;
+  }
+
+  function highlight(label, q) {
+    const i = label.toLowerCase().indexOf(q.toLowerCase());
+    if (i < 0) return escapeHtml(label);
+    return escapeHtml(label.slice(0, i)) + '<b>' + escapeHtml(label.slice(i, i + q.length)) + '</b>' + escapeHtml(label.slice(i + q.length));
+  }
+
+  let activeRowIdx = -1, flatRows = [];
+
+  function renderResults(q) {
+    flatRows = []; activeRowIdx = -1;
+    if (!q || q.trim().length < 1) { closeResults(); return; }
+    q = q.trim();
+
+    const groups = [
+      { key: 'domain',  head: 'Domains', hits: rankGroup(idx.domain, q) },
+      { key: 'table',   head: 'Tables',  hits: rankGroup(idx.table, q, {dedupBy: 'fqn'}) },
+      { key: 'column',  head: 'Columns', hits: rankGroup(idx.column, q) },
+    ];
+
+    const totalHits = groups.reduce((a, g) => a + g.hits.length, 0);
+    if (totalHits === 0) {
+      searchBox.innerHTML = '<div class="sr-empty">No matches for <code>' + escapeHtml(q) + '</code></div>';
+      openResults(); return;
+    }
+
+    let html = '';
+    for (const g of groups) {
+      if (!g.hits.length) continue;
+      const shown = g.hits.slice(0, PER_GROUP_CAP);
+      const overflow = g.hits.length - shown.length;
+      html += '<div class="sr-group"><div class="sr-head">' + g.head + ' · ' + g.hits.length + '</div>';
+      for (const it of shown) {
+        const ridx = flatRows.length;
+        flatRows.push(it);
+        const meta = it.kind === 'column' ? '→ ' + escapeHtml(it.meta)
+                   : it.kind === 'table'  ? escapeHtml(it.meta)
+                   : escapeHtml(it.meta || '').slice(0, 60);
+        html += '<div class="sr-row" data-ridx="' + ridx + '" role="option">' +
+                '<span class="sr-name">' + highlight(it.label, q) + '</span>' +
+                '<span class="sr-meta">' + meta + '</span></div>';
+      }
+      if (overflow > 0) {
+        html += '<div class="sr-more">…and ' + overflow + ' more — refine your query.</div>';
+      }
+      html += '</div>';
+    }
+    searchBox.innerHTML = html;
+    openResults();
+    activeRowIdx = 0;
+    paintActive();
+  }
+
+  function openResults() {
+    searchBox.classList.add('open');
+    searchInput.setAttribute('aria-expanded', 'true');
+  }
+  function closeResults() {
+    searchBox.classList.remove('open');
+    searchInput.setAttribute('aria-expanded', 'false');
+    activeRowIdx = -1; flatRows = [];
+  }
+  function paintActive() {
+    searchBox.querySelectorAll('.sr-row').forEach(r => r.classList.remove('active'));
+    if (activeRowIdx >= 0) {
+      const r = searchBox.querySelector('.sr-row[data-ridx="' + activeRowIdx + '"]');
+      if (r) { r.classList.add('active'); r.scrollIntoView({block:'nearest'}); }
+    }
+  }
+
+  function activate(it) {
+    closeResults();
+    searchInput.value = '';
+    searchInput.blur();
+    const inTableMode = document.body.classList.contains('view-table');
+    if (it.kind === 'domain') {
+      if (inTableMode) {
+        const sec = document.querySelector('#tm-inner .tm-domain[data-domain="' + cssEscape(it.id) + '"]');
+        if (sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+      selectDomain(it.id);
+      return;
+    }
+    // Table or column: select parent domain, then scroll/expand.
+    if (inTableMode) {
+      highlightTableModelCard(it.fqn);
+      if (it.kind === 'column') {
+        requestAnimationFrame(() => {
+          const c = document.querySelector('#tm-inner [data-tm-fqn="' + cssEscape(it.fqn) + '"]');
+          const det = c && c.querySelector('details');
+          if (det) det.open = true;
+          const row = c && c.querySelector('tr[data-tm-col="' + cssEscape(it.fqn + '::' + it.label) + '"]');
+          if (row) {
+            row.scrollIntoView({behavior:'smooth', block:'center'});
+            row.classList.remove('col-flash'); void row.offsetWidth; row.classList.add('col-flash');
+            setTimeout(() => row.classList.remove('col-flash'), 1700);
+          }
+        });
+      }
+      return;
+    }
+    selectDomain(it.domainId);
+    // Defer one frame so the side panel is rendered before we look for cards.
+    requestAnimationFrame(() => {
+      // Highlight the matching satellite bubble (and dim siblings) so the eye
+      // lands on the right table when 15+ satellites ring a single domain.
+      highlightSatelliteByFqn(it.fqn);
+      const card = document.querySelector('[data-fqn-card="' + cssEscape(it.fqn) + '"]');
+      if (!card) return;
+      card.scrollIntoView({behavior:'smooth', block:'center'});
+      if (it.kind === 'column') {
+        const det = card.querySelector('details');
+        if (det) det.open = true;
+        // Wait for details to expand, then scroll & flash the row.
+        requestAnimationFrame(() => {
+          const row = card.querySelector('tr[data-col-key="' + cssEscape(it.fqn + '::' + it.label) + '"]');
+          if (!row) return;
+          row.scrollIntoView({behavior:'smooth', block:'center'});
+          row.classList.remove('col-flash');
+          // Force reflow so the animation restarts even if class was just present.
+          void row.offsetWidth;
+          row.classList.add('col-flash');
+          setTimeout(() => row.classList.remove('col-flash'), 1700);
+        });
+      }
+    });
+  }
+
+  function cssEscape(s) {
+    return (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/["\\]/g, '\\$&');
+  }
+
+  // Input handlers
+  let lastQ = '';
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value;
+    if (q === lastQ) return;
+    lastQ = q;
+    renderResults(q);
+  });
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) renderResults(searchInput.value);
+  });
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') {
+      if (!flatRows.length) return;
+      e.preventDefault();
+      activeRowIdx = (activeRowIdx + 1) % flatRows.length;
+      paintActive();
+    } else if (e.key === 'ArrowUp') {
+      if (!flatRows.length) return;
+      e.preventDefault();
+      activeRowIdx = (activeRowIdx - 1 + flatRows.length) % flatRows.length;
+      paintActive();
+    } else if (e.key === 'Enter') {
+      if (activeRowIdx >= 0 && flatRows[activeRowIdx]) {
+        e.preventDefault();
+        activate(flatRows[activeRowIdx]);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (searchBox.classList.contains('open')) closeResults();
+      else { searchInput.value = ''; lastQ = ''; searchInput.blur(); }
+      e.stopPropagation();
+    }
+  });
+  searchBox.addEventListener('mousedown', e => {
+    const row = e.target.closest('.sr-row');
+    if (!row) return;
+    e.preventDefault();  // keep input focused until activate() blurs it
+    const r = flatRows[+row.dataset.ridx];
+    if (r) activate(r);
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) closeResults();
+  });
+
+  // Global keyboard: '/' and Ctrl/Cmd+K focus the omnibox.
+  document.addEventListener('keydown', e => {
+    const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (!inField && e.key === '/') {
+      e.preventDefault(); searchInput.focus(); searchInput.select();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault(); searchInput.focus(); searchInput.select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
